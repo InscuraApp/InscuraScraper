@@ -6,7 +6,7 @@ require (
 	github.com/adrg/strutil v0.3.1
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de
 	github.com/elliotchance/orderedmap/v3 v3.1.0
-	github.com/gin-contrib/cors v1.7.6
+	github.com/gin-contrib/cors v1.7.7
 	github.com/gin-gonic/gin v1.12.0
 	github.com/glebarez/sqlite v1.11.0
 	github.com/gocolly/colly/v2 v2.3.0
@@ -14,20 +14,20 @@ require (
 	github.com/hashicorp/go-cleanhttp v0.5.2
 	github.com/hashicorp/go-retryablehttp v0.7.8
 	github.com/json-iterator/go v1.1.12
-	github.com/lib/pq v1.12.0
+	github.com/lib/pq v1.12.3
 	github.com/middelink/go-parse-torrent-name v0.0.0-20190301154245-3ff4efacd4c4
 	github.com/ory/dockertest v3.3.5+incompatible
 	github.com/peterbourgon/ff/v3 v3.4.0
 	github.com/projectbarks/cimap v0.1.1
 	github.com/projectdiscovery/useragent v0.0.107
-	github.com/projectdiscovery/utils v0.9.0
+	github.com/projectdiscovery/utils v0.10.1
 	github.com/robertkrimen/otto v0.5.1
 	github.com/stretchr/testify v1.11.1
 	go.eigsys.de/gin-cachecontrol/v2 v2.4.1
 	go.uber.org/atomic v1.11.0
 	go.uber.org/automaxprocs v1.6.0
-	golang.org/x/net v0.52.0
-	golang.org/x/text v0.35.0
+	golang.org/x/net v0.53.0
+	golang.org/x/text v0.36.0
 	gorm.io/datatypes v1.2.7
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/gorm v1.31.1
@@ -104,10 +104,9 @@ require (
 	github.com/ugorji/go/codec v1.3.1 // indirect
 	go.mongodb.org/mongo-driver/v2 v2.5.0 // indirect
 	golang.org/x/arch v0.25.0 // indirect
-	golang.org/x/crypto v0.49.0 // indirect
+	golang.org/x/crypto v0.50.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
-	golang.org/x/sys v0.42.0 // indirect
-	golang.org/x/tools v0.43.0 // indirect
+	golang.org/x/sys v0.43.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
