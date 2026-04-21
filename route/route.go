@@ -1,0 +1,165 @@
+package route
+
+import (
+	goerr "errors"
+	"fmt"
+	"net/http"
+
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
+
+	"inscurascraper/engine"
+	"inscurascraper/errors"
+	V "inscurascraper/internal/version"
+	"inscurascraper/route/auth"
+)
+
+func New(app *engine.Engine, v auth.Validator) *gin.Engine {
+	r := gin.New()
+	{
+		// support CORS
+		r.Use(cors.Default())
+		// register middleware
+		r.Use(logger(), recovery())
+		// fallback behavior
+		r.NoRoute(notFound())
+		r.NoMethod(notAllowed())
+	}
+
+	// redirection middleware
+	r.Use(redirect(app))
+
+	// per-request proxy and api_key support via query parameters
+	r.Use(requestConfig(app))
+
+	// index page
+	r.GET("/", getIndex(app))
+
+	// health checks — unauthenticated, no cache, no routing middleware effects
+	r.GET("/healthz", getHealthz())
+	r.GET("/readyz", getReadyz(app))
+
+	system := r.Group("/v1", cacheNoStore())
+	{
+		system.GET("/modules", getModules())
+		system.GET("/providers", getProviders(app))
+	}
+
+	private := r.Group("/v1", authentication(v))
+	{
+		db := private.Group("/db")
+		{
+			db.GET("/version", getDBVersion(app))
+		}
+
+		actors := private.Group("/actors")
+		{
+			actors.GET("/:provider/:id", getInfo(app, actorInfoType))
+			actors.GET("/search", getSearch(app, actorSearchType))
+		}
+
+		movies := private.Group("/movies")
+		{
+			movies.GET("/:provider/:id", getInfo(app, movieInfoType))
+			movies.GET("/search", getSearch(app, movieSearchType))
+		}
+
+		reviews := private.Group("/reviews")
+		{
+			reviews.GET("/:provider/:id", getReview(app))
+		}
+
+		config := private.Group("/config")
+		{
+			config.GET("/proxy", getProxy(app))
+		}
+	}
+
+	return r
+}
+
+func logger() gin.HandlerFunc {
+	return gin.LoggerWithConfig(gin.LoggerConfig{})
+}
+
+func recovery() gin.HandlerFunc {
+	return gin.CustomRecovery(func(c *gin.Context, err any) {
+		abortWithStatusMessage(c, http.StatusInternalServerError, err)
+	})
+}
+
+func notFound() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		abortWithStatusMessage(c, http.StatusNotFound,
+			http.StatusText(http.StatusNotFound))
+	}
+}
+
+func notAllowed() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		abortWithStatusMessage(c, http.StatusMethodNotAllowed,
+			http.StatusText(http.StatusMethodNotAllowed))
+	}
+}
+
+func getIndex(app *engine.Engine) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.JSON(http.StatusOK, &responseMessage{
+			Data: gin.H{
+				"app":     app.String(),
+				"version": V.BuildString(),
+			},
+		})
+	}
+}
+
+func getModules() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"modules": V.Modules(),
+		})
+	}
+}
+
+func getProviders(app *engine.Engine) gin.HandlerFunc {
+	data := struct {
+		ActorProviders map[string]string `json:"actor_providers"`
+		MovieProviders map[string]string `json:"movie_providers"`
+	}{
+		ActorProviders: make(map[string]string),
+		MovieProviders: make(map[string]string),
+	}
+	for _, provider := range app.GetActorProviders() {
+		data.ActorProviders[provider.Name()] = provider.URL().String()
+	}
+	for _, provider := range app.GetMovieProviders() {
+		data.MovieProviders[provider.Name()] = provider.URL().String()
+	}
+	return func(c *gin.Context) {
+		c.JSON(http.StatusOK, &responseMessage{Data: data})
+	}
+}
+
+func abortWithError(c *gin.Context, err error) {
+	var e *errors.HTTPError
+	if goerr.As(err, &e) {
+		c.AbortWithStatusJSON(e.Code, &responseMessage{Error: e})
+		return
+	}
+	code := http.StatusInternalServerError
+	if c := errors.StatusCode(err); c != 0 {
+		code = c
+	}
+	abortWithStatusMessage(c, code, err)
+}
+
+func abortWithStatusMessage(c *gin.Context, code int, message any) {
+	c.AbortWithStatusJSON(code, &responseMessage{
+		Error: errors.New(code, fmt.Sprintf("%v", message)),
+	})
+}
+
+type responseMessage struct {
+	Data  any   `json:"data,omitempty"`
+	Error error `json:"error,omitempty"`
+}

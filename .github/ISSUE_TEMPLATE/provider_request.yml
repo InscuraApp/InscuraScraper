@@ -1,0 +1,44 @@
+name: Provider Request
+description: Request support for a new metadata source.
+title: "[provider]: add <name>"
+labels: ["provider", "enhancement"]
+body:
+  - type: input
+    id: name
+    attributes:
+      label: Provider name
+      placeholder: "e.g. TVDB, TMDB, MyAnimeList"
+    validations:
+      required: true
+  - type: input
+    id: url
+    attributes:
+      label: Source URL
+      placeholder: "https://www.example.com"
+    validations:
+      required: true
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      multiple: true
+      options:
+        - Movie metadata
+        - Actor metadata
+        - Movie reviews
+        - Movie search
+        - Actor search
+    validations:
+      required: true
+  - type: textarea
+    id: access
+    attributes:
+      label: Access model
+      description: Public HTML, REST API, requires API key, rate limits, regional restrictions, etc.
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional notes
+      description: Sample IDs or URLs that should resolve correctly, edge cases, data quirks.

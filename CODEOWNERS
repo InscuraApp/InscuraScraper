@@ -1,0 +1,22 @@
+# Code owners are automatically requested for review when a pull request
+# touches the matching files. Adjust the handles below to real maintainers
+# before enabling branch protection.
+#
+# Format: <glob> <owner1> <owner2> ...
+# Docs: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-security/customizing-your-repository/about-code-owners
+
+* @Hoyt
+
+/provider/       @Hoyt
+/engine/         @Hoyt
+/route/          @Hoyt
+/database/       @Hoyt
+
+/.github/        @Hoyt
+/Dockerfile      @Hoyt
+/docker-compose.yaml @Hoyt
+/Makefile        @Hoyt
+
+/SECURITY.md         @Hoyt
+/CODE_OF_CONDUCT.md  @Hoyt
+/CONTRIBUTING.md     @Hoyt
