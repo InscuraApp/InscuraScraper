@@ -2,18 +2,17 @@ package cmd
 
 import (
 	goflag "flag"
+	"inscurascraper/database"
+	"inscurascraper/engine"
+	"inscurascraper/internal/envconfig"
+	"inscurascraper/route"
+	"inscurascraper/route/auth"
 	"log"
 	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/peterbourgon/ff/v3"
-
-	"inscurascraper/database"
-	"inscurascraper/engine"
-	"inscurascraper/internal/envconfig"
-	"inscurascraper/route"
-	"inscurascraper/route/auth"
 )
 
 var Config = &struct {

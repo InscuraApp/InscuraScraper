@@ -2,12 +2,11 @@ package tvdb
 
 import (
 	"fmt"
+	"inscurascraper/model"
+	"inscurascraper/provider"
 	"net/url"
 	"strconv"
 	"strings"
-
-	"inscurascraper/model"
-	"inscurascraper/provider"
 )
 
 // TVDB API response types for series and movies.
@@ -37,35 +36,35 @@ type seriesExtended struct {
 }
 
 type movieExtended struct {
-	ID                   int              `json:"id"`
-	Name                 string           `json:"name"`
-	Slug                 string           `json:"slug"`
-	Image                string           `json:"image"`
-	FirstRelease         *release         `json:"first_release"`
-	Year                 string           `json:"year"`
-	Status               *status          `json:"status"`
-	Score                int              `json:"score"`
-	Runtime              int              `json:"runtime"`
-	OriginalCountry      string           `json:"originalCountry"`
-	OriginalLanguage     string           `json:"originalLanguage"`
-	Genres               []genre          `json:"genres"`
-	Characters           []character      `json:"characters"`
-	Artworks             []artwork        `json:"artworks"`
-	Trailers             []trailer        `json:"trailers"`
-	Studios              []company        `json:"studios"`
-	Companies            *movieCompanies  `json:"companies"`
-	RemoteIDs            []remoteID       `json:"remoteIds"`
-	NameTranslations     []string         `json:"nameTranslations"`
-	OverviewTranslations []string         `json:"overviewTranslations"`
-	Translations         *translations    `json:"translations"`
+	ID                   int             `json:"id"`
+	Name                 string          `json:"name"`
+	Slug                 string          `json:"slug"`
+	Image                string          `json:"image"`
+	FirstRelease         *release        `json:"first_release"`
+	Year                 string          `json:"year"`
+	Status               *status         `json:"status"`
+	Score                int             `json:"score"`
+	Runtime              int             `json:"runtime"`
+	OriginalCountry      string          `json:"originalCountry"`
+	OriginalLanguage     string          `json:"originalLanguage"`
+	Genres               []genre         `json:"genres"`
+	Characters           []character     `json:"characters"`
+	Artworks             []artwork       `json:"artworks"`
+	Trailers             []trailer       `json:"trailers"`
+	Studios              []company       `json:"studios"`
+	Companies            *movieCompanies `json:"companies"`
+	RemoteIDs            []remoteID      `json:"remoteIds"`
+	NameTranslations     []string        `json:"nameTranslations"`
+	OverviewTranslations []string        `json:"overviewTranslations"`
+	Translations         *translations   `json:"translations"`
 }
 
 // movieCompanies handles the nested company structure for movies:
 // {"studio": [...], "production": [...], "distributor": [...], ...}
 type movieCompanies struct {
-	Studio       []company `json:"studio"`
-	Production   []company `json:"production"`
-	Distributor  []company `json:"distributor"`
+	Studio         []company `json:"studio"`
+	Production     []company `json:"production"`
+	Distributor    []company `json:"distributor"`
 	SpecialEffects []company `json:"special_effects"`
 }
 
@@ -98,26 +97,26 @@ type movieBase struct {
 }
 
 type searchResult struct {
-	ObjectID        string   `json:"objectID"`
-	Name            string   `json:"name"`
-	Slug            string   `json:"slug"`
-	Type            string   `json:"type"`
-	TvdbID          string   `json:"tvdb_id"`
-	Year            string   `json:"year"`
-	ImageURL        string   `json:"image_url"`
-	Thumbnail       string   `json:"thumbnail"`
-	PrimaryLanguage string   `json:"primary_language"`
-	Overview        string   `json:"overview"`
+	ObjectID        string            `json:"objectID"`
+	Name            string            `json:"name"`
+	Slug            string            `json:"slug"`
+	Type            string            `json:"type"`
+	TvdbID          string            `json:"tvdb_id"`
+	Year            string            `json:"year"`
+	ImageURL        string            `json:"image_url"`
+	Thumbnail       string            `json:"thumbnail"`
+	PrimaryLanguage string            `json:"primary_language"`
+	Overview        string            `json:"overview"`
 	Overviews       map[string]string `json:"overviews"`
 	Translations    map[string]string `json:"translations"`
 }
 
 // Artwork type constants (from TVDB artwork types).
 const (
-	artworkTypeBanner    = 1
-	artworkTypePoster    = 2
+	artworkTypeBanner     = 1
+	artworkTypePoster     = 2
 	artworkTypeBackground = 3
-	artworkTypeIcon      = 5
+	artworkTypeIcon       = 5
 )
 
 // NormalizeMovieID implements provider.MovieProvider.
@@ -166,7 +165,6 @@ func (t *TVDB) ParseMovieIDFromURL(rawURL string) (string, error) {
 
 // GetMovieInfoByID implements provider.MovieProvider.
 func (t *TVDB) GetMovieInfoByID(id string) (*model.MovieInfo, error) {
-
 	kind, numID := parseMovieID(id)
 
 	switch kind {
@@ -437,7 +435,6 @@ func (t *TVDB) NormalizeMovieKeyword(keyword string) string {
 
 // SearchMovie implements provider.MovieSearcher.
 func (t *TVDB) SearchMovie(keyword string) ([]*model.MovieSearchResult, error) {
-
 	apiURL := fmt.Sprintf("%s/search?query=%s", apiBaseURL, url.QueryEscape(keyword))
 
 	var resp apiResponse[[]searchResult]

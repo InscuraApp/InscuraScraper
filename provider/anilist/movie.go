@@ -2,11 +2,10 @@ package anilist
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
-
 	"inscurascraper/model"
 	"inscurascraper/provider"
+	"strconv"
+	"strings"
 )
 
 // GraphQL queries for media. The %s placeholder receives the AniList
@@ -90,7 +89,7 @@ type mediaDetail struct {
 	} `json:"staff"`
 	Characters struct {
 		Edges []struct {
-			Role string `json:"role"`
+			Role        string `json:"role"`
 			VoiceActors []struct {
 				ID   int `json:"id"`
 				Name struct {

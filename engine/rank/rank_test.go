@@ -1,10 +1,9 @@
 package rank
 
 import (
+	"inscurascraper/model"
 	"testing"
 	"time"
-
-	"inscurascraper/model"
 
 	"gorm.io/datatypes"
 )

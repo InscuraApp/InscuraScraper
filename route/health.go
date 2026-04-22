@@ -1,11 +1,10 @@
 package route
 
 import (
+	"inscurascraper/engine"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-
-	"inscurascraper/engine"
 )
 
 // getHealthz returns a liveness probe that always succeeds once the HTTP

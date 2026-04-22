@@ -2,11 +2,10 @@ package tvmaze
 
 import (
 	"fmt"
-	"net/url"
-	"strconv"
-
 	"inscurascraper/model"
 	"inscurascraper/provider"
+	"net/url"
+	"strconv"
 )
 
 // TVMaze API response types for shows.
@@ -38,7 +37,7 @@ type embedded struct {
 }
 
 type castItem struct {
-	Person    personBrief   `json:"person"`
+	Person    personBrief    `json:"person"`
 	Character characterBrief `json:"character"`
 }
 

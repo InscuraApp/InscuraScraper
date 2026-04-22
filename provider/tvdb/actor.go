@@ -2,32 +2,31 @@ package tvdb
 
 import (
 	"fmt"
+	"inscurascraper/model"
+	"inscurascraper/provider"
 	"net/url"
 	"strconv"
 	"strings"
-
-	"inscurascraper/model"
-	"inscurascraper/provider"
 )
 
 // TVDB API response types for people.
 
 type personExtended struct {
-	ID                   int         `json:"id"`
-	Name                 string      `json:"name"`
-	Slug                 string      `json:"slug"`
-	Image                string      `json:"image"`
-	Birth                string      `json:"birth"`
-	Death                string      `json:"death"`
-	BirthPlace           string      `json:"birthPlace"`
-	Gender               int         `json:"gender"`
-	Score                int         `json:"score"`
-	Biographies          []biography `json:"biographies"`
-	Characters           []character `json:"characters"`
-	Aliases              []alias     `json:"aliases"`
-	RemoteIDs            []remoteID  `json:"remoteIds"`
-	NameTranslations     []string    `json:"nameTranslations"`
-	OverviewTranslations []string    `json:"overviewTranslations"`
+	ID                   int           `json:"id"`
+	Name                 string        `json:"name"`
+	Slug                 string        `json:"slug"`
+	Image                string        `json:"image"`
+	Birth                string        `json:"birth"`
+	Death                string        `json:"death"`
+	BirthPlace           string        `json:"birthPlace"`
+	Gender               int           `json:"gender"`
+	Score                int           `json:"score"`
+	Biographies          []biography   `json:"biographies"`
+	Characters           []character   `json:"characters"`
+	Aliases              []alias       `json:"aliases"`
+	RemoteIDs            []remoteID    `json:"remoteIds"`
+	NameTranslations     []string      `json:"nameTranslations"`
+	OverviewTranslations []string      `json:"overviewTranslations"`
 	Translations         *translations `json:"translations"`
 }
 
@@ -51,7 +50,6 @@ func (t *TVDB) ParseActorIDFromURL(rawURL string) (string, error) {
 
 // GetActorInfoByID implements provider.ActorProvider.
 func (t *TVDB) GetActorInfoByID(id string) (*model.ActorInfo, error) {
-
 	apiURL := fmt.Sprintf("%s/people/%s/extended", apiBaseURL, id)
 
 	var resp apiResponse[personExtended]
@@ -145,7 +143,6 @@ func (t *TVDB) GetActorInfoByURL(rawURL string) (*model.ActorInfo, error) {
 
 // SearchActor implements provider.ActorSearcher.
 func (t *TVDB) SearchActor(keyword string) ([]*model.ActorSearchResult, error) {
-
 	apiURL := fmt.Sprintf("%s/search?query=%s&type=people",
 		apiBaseURL, url.QueryEscape(keyword))
 

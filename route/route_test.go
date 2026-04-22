@@ -2,24 +2,19 @@ package route
 
 import (
 	"encoding/json"
+	"inscurascraper/engine"
+	"inscurascraper/route/auth"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
 	"github.com/gin-gonic/gin"
-
-	"inscurascraper/engine"
-	"inscurascraper/route/auth"
 )
 
 type denyAll struct{}
 
 func (denyAll) Valid(string) bool { return false }
-
-type allowAll struct{}
-
-func (allowAll) Valid(string) bool { return true }
 
 func newTestRouter(t *testing.T, v auth.Validator) *gin.Engine {
 	t.Helper()

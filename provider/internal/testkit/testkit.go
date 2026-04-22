@@ -2,6 +2,7 @@ package testkit
 
 import (
 	"fmt"
+	"inscurascraper/model"
 	"io"
 	"math/rand"
 	"net/http"
@@ -11,11 +12,10 @@ import (
 	"testing"
 	"time"
 
+	mt "inscurascraper/provider"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"inscurascraper/model"
-	mt "inscurascraper/provider"
 )
 
 type internalTestSuite struct {

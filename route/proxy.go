@@ -1,15 +1,15 @@
 package route
 
 import (
+	"inscurascraper/common/proxy"
+	"inscurascraper/engine"
 	"net/http"
 	"strings"
 
+	mt "inscurascraper/provider"
+
 	"github.com/gin-gonic/gin"
 	"golang.org/x/text/language"
-
-	"inscurascraper/common/proxy"
-	"inscurascraper/engine"
-	mt "inscurascraper/provider"
 )
 
 const (

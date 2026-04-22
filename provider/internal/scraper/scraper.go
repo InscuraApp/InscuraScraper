@@ -2,6 +2,7 @@ package scraper
 
 import (
 	"bytes"
+	"inscurascraper/provider"
 	"net/url"
 	"runtime"
 	"strconv"
@@ -11,8 +12,6 @@ import (
 	"github.com/gocolly/colly/v2"
 	"go.uber.org/atomic"
 	"golang.org/x/text/language"
-
-	"inscurascraper/provider"
 )
 
 var (

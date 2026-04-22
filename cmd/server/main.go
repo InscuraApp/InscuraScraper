@@ -2,13 +2,13 @@ package main
 
 import (
 	"fmt"
+	"inscurascraper/cmd"
+	"inscurascraper/engine"
 	"log"
 	"net"
 	"net/http"
 	"os"
 
-	"inscurascraper/cmd"
-	"inscurascraper/engine"
 	V "inscurascraper/internal/version"
 )
 

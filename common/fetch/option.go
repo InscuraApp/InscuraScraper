@@ -1,9 +1,8 @@
 package fetch
 
 import (
-	"net/http"
-
 	"inscurascraper/common/random"
+	"net/http"
 )
 
 // Context is used for each request.

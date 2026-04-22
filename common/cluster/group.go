@@ -2,7 +2,6 @@ package cluster
 
 import (
 	"cmp"
-
 	"inscurascraper/collection/unionfind"
 )
 

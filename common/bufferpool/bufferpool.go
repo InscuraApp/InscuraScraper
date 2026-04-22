@@ -2,7 +2,6 @@ package bufferpool
 
 import (
 	"bytes"
-
 	"inscurascraper/common/pool"
 )
 

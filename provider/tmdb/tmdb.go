@@ -3,6 +3,8 @@ package tmdb
 import (
 	"encoding/json"
 	"fmt"
+	"inscurascraper/provider"
+	"inscurascraper/provider/internal/scraper"
 	"net/http"
 	"net/url"
 	"path"
@@ -13,9 +15,6 @@ import (
 	"github.com/gocolly/colly/v2"
 	"golang.org/x/text/language"
 	"gorm.io/datatypes"
-
-	"inscurascraper/provider"
-	"inscurascraper/provider/internal/scraper"
 )
 
 var (
@@ -44,12 +43,12 @@ const (
 
 // Image sizes
 const (
-	posterW342      = "w342"
-	posterW500      = "w500"
-	posterOriginal  = "original"
-	backdropW780    = "w780"
+	posterW342       = "w342"
+	posterW500       = "w500"
+	posterOriginal   = "original"
+	backdropW780     = "w780"
 	backdropOriginal = "original"
-	profileOriginal = "original"
+	profileOriginal  = "original"
 )
 
 type TMDB struct {

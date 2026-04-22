@@ -1,10 +1,9 @@
 package fanarttv
 
 import (
+	"inscurascraper/provider/internal/testkit"
 	"os"
 	"testing"
-
-	"inscurascraper/provider/internal/testkit"
 )
 
 // Set env IS_FANARTTV_API_KEY to run tests.
@@ -19,10 +18,10 @@ func TestFanartTV_GetMovieInfoByID(t *testing.T) {
 		res.apiKey = apiKey
 		return res
 	}, []string{
-		"movie:550",   // Fight Club (TMDB ID)
-		"movie:238",   // The Godfather (TMDB ID)
-		"tv:81189",    // Breaking Bad (TVDB ID)
-		"tv:121361",   // Game of Thrones (TVDB ID)
+		"movie:550", // Fight Club (TMDB ID)
+		"movie:238", // The Godfather (TMDB ID)
+		"tv:81189",  // Breaking Bad (TVDB ID)
+		"tv:121361", // Game of Thrones (TVDB ID)
 	})
 }
 

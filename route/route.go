@@ -3,15 +3,15 @@ package route
 import (
 	goerr "errors"
 	"fmt"
+	"inscurascraper/engine"
+	"inscurascraper/errors"
+	"inscurascraper/route/auth"
 	"net/http"
+
+	V "inscurascraper/internal/version"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-
-	"inscurascraper/engine"
-	"inscurascraper/errors"
-	V "inscurascraper/internal/version"
-	"inscurascraper/route/auth"
 )
 
 func New(app *engine.Engine, v auth.Validator) *gin.Engine {

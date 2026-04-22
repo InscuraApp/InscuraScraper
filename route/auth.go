@@ -1,13 +1,12 @@
 package route
 
 import (
+	"inscurascraper/errors"
+	"inscurascraper/route/auth"
 	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
-
-	"inscurascraper/errors"
-	"inscurascraper/route/auth"
 )
 
 func authentication(v auth.Validator) gin.HandlerFunc {

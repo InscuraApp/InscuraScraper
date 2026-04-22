@@ -4,9 +4,14 @@ import (
 	"database/sql"
 	_ "embed"
 	"encoding/json"
+	"inscurascraper/common/parser"
+	"inscurascraper/database"
+	"inscurascraper/engine/providerid"
+	"inscurascraper/model"
 	"log"
 	"net"
 	"net/url"
+	"os"
 	"slices"
 	"sort"
 	"strings"
@@ -20,11 +25,6 @@ import (
 	"github.com/stretchr/testify/suite"
 	"gorm.io/datatypes"
 	"gorm.io/gorm/logger"
-
-	"inscurascraper/common/parser"
-	"inscurascraper/database"
-	"inscurascraper/engine/providerid"
-	"inscurascraper/model"
 )
 
 var (
@@ -56,11 +56,16 @@ func TestDBEngineTestSuite(t *testing.T) {
 			typ: database.Sqlite,
 			dsn: ":memory:",
 		},
-		{
+	}
+	if postgresDSN != "" {
+		suites = append(suites, struct {
+			typ string
+			dsn string
+		}{
 			// Postgres
 			typ: database.Postgres,
 			dsn: postgresDSN,
-		},
+		})
 	}
 
 	for _, s := range suites {
@@ -335,11 +340,13 @@ func jsonify(v interface{}) string {
 func TestMain(m *testing.M) {
 	pool, err := dockertest.NewPool("")
 	if err != nil {
-		log.Fatalf("Could not construct pool: %s", err)
+		log.Printf("Skipping PostgreSQL dbengine tests: could not construct Docker pool: %s", err)
+		os.Exit(m.Run())
 	}
 
 	if err := pool.Client.Ping(); err != nil {
-		log.Fatalf("Could not connect to Docker: %s", err)
+		log.Printf("Skipping PostgreSQL dbengine tests: could not connect to Docker: %s", err)
+		os.Exit(m.Run())
 	}
 
 	resource, err := pool.RunWithOptions(
@@ -379,13 +386,11 @@ func TestMain(m *testing.M) {
 		log.Fatalf("Could not connect to database: %s", err)
 	}
 
-	defer func() {
-		if err := pool.Purge(resource); err != nil {
-			log.Fatalf("Could not purge resource: %s", err)
-		}
-	}()
-
-	m.Run()
+	code := m.Run()
+	if err := pool.Purge(resource); err != nil {
+		log.Fatalf("Could not purge resource: %s", err)
+	}
+	os.Exit(code)
 }
 
 var postgresDSN string

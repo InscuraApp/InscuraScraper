@@ -3,6 +3,9 @@ package fanarttv
 import (
 	"encoding/json"
 	"fmt"
+	"inscurascraper/model"
+	"inscurascraper/provider"
+	"inscurascraper/provider/internal/scraper"
 	"net/http"
 	"net/url"
 	"sort"
@@ -11,10 +14,6 @@ import (
 
 	"github.com/gocolly/colly/v2"
 	"golang.org/x/text/language"
-
-	"inscurascraper/model"
-	"inscurascraper/provider"
-	"inscurascraper/provider/internal/scraper"
 )
 
 var (
@@ -156,35 +155,35 @@ type fanartImage struct {
 
 // movieResponse holds the raw JSON for a movie lookup.
 type movieResponse struct {
-	Name             string        `json:"name"`
-	TmdbID           string        `json:"tmdb_id"`
-	ImdbID           string        `json:"imdb_id"`
-	MoviePoster      []fanartImage `json:"movieposter"`
-	MovieBackground  []fanartImage `json:"moviebackground"`
-	MovieThumb       []fanartImage `json:"moviethumb"`
-	HdMovieLogo      []fanartImage `json:"hdmovielogo"`
-	HdMovieClearart  []fanartImage `json:"hdmovieclearart"`
-	MovieLogo        []fanartImage `json:"movielogo"`
-	MovieBanner      []fanartImage `json:"moviebanner"`
-	MovieDisc        []fanartImage `json:"moviedisc"`
+	Name            string        `json:"name"`
+	TmdbID          string        `json:"tmdb_id"`
+	ImdbID          string        `json:"imdb_id"`
+	MoviePoster     []fanartImage `json:"movieposter"`
+	MovieBackground []fanartImage `json:"moviebackground"`
+	MovieThumb      []fanartImage `json:"moviethumb"`
+	HdMovieLogo     []fanartImage `json:"hdmovielogo"`
+	HdMovieClearart []fanartImage `json:"hdmovieclearart"`
+	MovieLogo       []fanartImage `json:"movielogo"`
+	MovieBanner     []fanartImage `json:"moviebanner"`
+	MovieDisc       []fanartImage `json:"moviedisc"`
 }
 
 // tvResponse holds the raw JSON for a TV show lookup.
 type tvResponse struct {
-	Name            string        `json:"name"`
-	ThetvdbID       string        `json:"thetvdb_id"`
-	TvPoster        []fanartImage `json:"tvposter"`
-	ShowBackground  []fanartImage `json:"showbackground"`
-	TvThumb         []fanartImage `json:"tvthumb"`
-	HdTvLogo        []fanartImage `json:"hdtvlogo"`
-	HdClearart      []fanartImage `json:"hdclearart"`
-	ClearLogo       []fanartImage `json:"clearlogo"`
-	ClearArt        []fanartImage `json:"clearart"`
-	CharacterArt    []fanartImage `json:"characterart"`
-	TvBanner        []fanartImage `json:"tvbanner"`
-	SeasonPoster    []fanartImage `json:"seasonposter"`
-	SeasonThumb     []fanartImage `json:"seasonthumb"`
-	SeasonBanner    []fanartImage `json:"seasonbanner"`
+	Name           string        `json:"name"`
+	ThetvdbID      string        `json:"thetvdb_id"`
+	TvPoster       []fanartImage `json:"tvposter"`
+	ShowBackground []fanartImage `json:"showbackground"`
+	TvThumb        []fanartImage `json:"tvthumb"`
+	HdTvLogo       []fanartImage `json:"hdtvlogo"`
+	HdClearart     []fanartImage `json:"hdclearart"`
+	ClearLogo      []fanartImage `json:"clearlogo"`
+	ClearArt       []fanartImage `json:"clearart"`
+	CharacterArt   []fanartImage `json:"characterart"`
+	TvBanner       []fanartImage `json:"tvbanner"`
+	SeasonPoster   []fanartImage `json:"seasonposter"`
+	SeasonThumb    []fanartImage `json:"seasonthumb"`
+	SeasonBanner   []fanartImage `json:"seasonbanner"`
 }
 
 // parseID splits a prefixed ID like "movie:550" or "tv:81189".
@@ -236,7 +235,6 @@ func (f *FanartTV) ParseMovieIDFromURL(rawURL string) (string, error) {
 
 // GetMovieInfoByID implements provider.MovieProvider.
 func (f *FanartTV) GetMovieInfoByID(id string) (*model.MovieInfo, error) {
-
 	kind, numID := parseID(id)
 
 	switch kind {
@@ -391,22 +389,6 @@ func pickBest(images []fanartImage, langs ...string) *fanartImage {
 		return &images[0]
 	}
 	return nil
-}
-
-// parseIDFromURL extracts a numeric ID from a URL path like /movie/550/...
-func parseIDFromURL(rawURL string) (string, error) {
-	u, err := url.Parse(rawURL)
-	if err != nil {
-		return "", err
-	}
-	parts := strings.SplitN(strings.Trim(u.Path, "/"), "/", 3)
-	if len(parts) < 2 {
-		return "", fmt.Errorf("invalid Fanart.tv URL: %s", rawURL)
-	}
-	if _, err := strconv.Atoi(parts[1]); err != nil {
-		return "", fmt.Errorf("invalid ID: %s", parts[1])
-	}
-	return parts[1], nil
 }
 
 func init() {

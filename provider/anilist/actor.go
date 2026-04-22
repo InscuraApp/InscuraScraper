@@ -2,10 +2,9 @@ package anilist
 
 import (
 	"fmt"
-	"strconv"
-
 	"inscurascraper/model"
 	"inscurascraper/provider"
+	"strconv"
 )
 
 // GraphQL queries for staff (mapped to ActorProvider).
@@ -52,18 +51,18 @@ type staffDetailResponse struct {
 }
 
 type staffDetail struct {
-	ID                  int        `json:"id"`
-	Name                staffName  `json:"name"`
-	Image               *staffImage `json:"image"`
-	Description         string     `json:"description"`
-	PrimaryOccupations  []string   `json:"primaryOccupations"`
-	Gender              *string    `json:"gender"`
-	DateOfBirth         *fuzzyDate `json:"dateOfBirth"`
-	DateOfDeath         *fuzzyDate `json:"dateOfDeath"`
-	Age                 *int       `json:"age"`
-	HomeTown            string     `json:"homeTown"`
-	BloodType           *string    `json:"bloodType"`
-	LanguageV2          string     `json:"languageV2"`
+	ID                 int         `json:"id"`
+	Name               staffName   `json:"name"`
+	Image              *staffImage `json:"image"`
+	Description        string      `json:"description"`
+	PrimaryOccupations []string    `json:"primaryOccupations"`
+	Gender             *string     `json:"gender"`
+	DateOfBirth        *fuzzyDate  `json:"dateOfBirth"`
+	DateOfDeath        *fuzzyDate  `json:"dateOfDeath"`
+	Age                *int        `json:"age"`
+	HomeTown           string      `json:"homeTown"`
+	BloodType          *string     `json:"bloodType"`
+	LanguageV2         string      `json:"languageV2"`
 }
 
 type staffSearchResponse struct {
@@ -75,11 +74,11 @@ type staffSearchResponse struct {
 }
 
 type staffSearchItem struct {
-	ID                 int        `json:"id"`
-	Name               staffName  `json:"name"`
+	ID                 int         `json:"id"`
+	Name               staffName   `json:"name"`
 	Image              *staffImage `json:"image"`
-	PrimaryOccupations []string   `json:"primaryOccupations"`
-	HomeTown           string     `json:"homeTown"`
+	PrimaryOccupations []string    `json:"primaryOccupations"`
+	HomeTown           string      `json:"homeTown"`
 }
 
 // NormalizeActorID implements provider.ActorProvider.

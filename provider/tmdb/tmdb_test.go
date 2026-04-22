@@ -1,10 +1,9 @@
 package tmdb
 
 import (
+	"inscurascraper/provider/internal/testkit"
 	"os"
 	"testing"
-
-	"inscurascraper/provider/internal/testkit"
 )
 
 // Set env IS_TMDB_API_TOKEN to run tests.
@@ -62,8 +61,8 @@ func TestTMDB_GetActorInfoByID(t *testing.T) {
 		res.apiToken = apiToken
 		return res
 	}, []string{
-		"287",   // Brad Pitt
-		"6193",  // Leonardo DiCaprio
+		"287",  // Brad Pitt
+		"6193", // Leonardo DiCaprio
 	})
 }
 

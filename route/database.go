@@ -1,11 +1,10 @@
 package route
 
 import (
+	"inscurascraper/engine"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-
-	"inscurascraper/engine"
 )
 
 func getDBVersion(app *engine.Engine) gin.HandlerFunc {

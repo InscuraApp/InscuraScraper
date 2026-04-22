@@ -1,13 +1,12 @@
 package scraper
 
 import (
+	"inscurascraper/common/random"
 	"net/http"
 	"time"
 
 	"github.com/gocolly/colly/v2"
 	"github.com/gocolly/colly/v2/debug"
-
-	"inscurascraper/common/random"
 )
 
 type Option func(*Scraper) error

@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"inscurascraper/common/convertor"
 	"regexp"
 	"strconv"
 	"strings"
@@ -10,8 +11,6 @@ import (
 	"github.com/araddon/dateparse"
 	"golang.org/x/net/html"
 	dt "gorm.io/datatypes"
-
-	"inscurascraper/common/convertor"
 )
 
 // ParseInt parses string to int regardless.

@@ -2,11 +2,10 @@ package envconfig
 
 import (
 	"errors"
-	"strconv"
-	"time"
-
 	"inscurascraper/collection/maps"
 	"inscurascraper/provider"
+	"strconv"
+	"time"
 )
 
 var _ provider.Config = (*Config)(nil)

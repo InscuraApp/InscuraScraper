@@ -1,14 +1,13 @@
 package route
 
 import (
+	"inscurascraper/engine"
+	"inscurascraper/errors"
+	"inscurascraper/model"
 	"net/http"
 	pkgurl "net/url"
 
 	"github.com/gin-gonic/gin"
-
-	"inscurascraper/engine"
-	"inscurascraper/errors"
-	"inscurascraper/model"
 )
 
 type searchType uint8

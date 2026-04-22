@@ -2,6 +2,9 @@ package engine
 
 import (
 	"fmt"
+	"inscurascraper/collection/maps"
+	"inscurascraper/common/fetch"
+	"inscurascraper/database"
 	"log"
 	gomaps "maps"
 	"net/http"
@@ -9,12 +12,9 @@ import (
 	"strings"
 	"time"
 
-	"gorm.io/gorm"
-
-	"inscurascraper/collection/maps"
-	"inscurascraper/common/fetch"
-	"inscurascraper/database"
 	mt "inscurascraper/provider"
+
+	"gorm.io/gorm"
 )
 
 const (

@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"inscurascraper/provider"
+	"inscurascraper/provider/internal/scraper"
 	"net/http"
 	"net/url"
-	"path"
 	"regexp"
 	"strconv"
 	"strings"
@@ -15,9 +16,6 @@ import (
 	"github.com/gocolly/colly/v2"
 	"golang.org/x/text/language"
 	"gorm.io/datatypes"
-
-	"inscurascraper/provider"
-	"inscurascraper/provider/internal/scraper"
 )
 
 var (
@@ -33,11 +31,11 @@ const (
 )
 
 const (
-	baseURL       = "https://anilist.co/"
-	graphqlURL    = "https://graphql.anilist.co"
-	animePageURL  = "https://anilist.co/anime/%s"
-	mangaPageURL  = "https://anilist.co/manga/%s"
-	staffPageURL  = "https://anilist.co/staff/%s"
+	baseURL      = "https://anilist.co/"
+	graphqlURL   = "https://graphql.anilist.co"
+	animePageURL = "https://anilist.co/anime/%s"
+	mangaPageURL = "https://anilist.co/manga/%s"
+	staffPageURL = "https://anilist.co/staff/%s"
 )
 
 // ID prefixes to distinguish anime from manga.
@@ -244,29 +242,6 @@ func parseStaffIDFromURL(rawURL string) (string, error) {
 		return "", fmt.Errorf("invalid AniList staff ID: %s", numID)
 	}
 	return numID, nil
-}
-
-// parseCharacterIDFromURL for https://anilist.co/character/1/...
-func parseCharacterIDFromURL(rawURL string) (string, error) {
-	u, err := url.Parse(rawURL)
-	if err != nil {
-		return "", err
-	}
-	base := path.Base(u.Path)
-	if idx := strings.Index(base, "-"); idx > 0 {
-		base = base[:idx]
-	}
-	if _, err := strconv.Atoi(base); err != nil {
-		// Try second path segment
-		parts := strings.SplitN(strings.Trim(u.Path, "/"), "/", 3)
-		if len(parts) >= 2 {
-			if _, err := strconv.Atoi(parts[1]); err == nil {
-				return parts[1], nil
-			}
-		}
-		return "", fmt.Errorf("invalid AniList ID: %s", base)
-	}
-	return base, nil
 }
 
 // Common GraphQL response types.

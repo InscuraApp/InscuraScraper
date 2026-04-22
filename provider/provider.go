@@ -21,14 +21,13 @@
 package provider
 
 import (
+	"inscurascraper/model"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
 
 	"golang.org/x/text/language"
-
-	"inscurascraper/model"
 )
 
 // Provider is the base interface implemented by every metadata source.

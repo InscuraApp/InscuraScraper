@@ -1,9 +1,8 @@
 package anilist
 
 import (
-	"testing"
-
 	"inscurascraper/provider/internal/testkit"
+	"testing"
 )
 
 // AniList API is public, no authentication needed.

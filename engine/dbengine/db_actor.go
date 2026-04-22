@@ -2,12 +2,11 @@ package dbengine
 
 import (
 	"fmt"
-
-	"gorm.io/gorm/clause"
-
 	"inscurascraper/database"
 	"inscurascraper/engine/providerid"
 	"inscurascraper/model"
+
+	"gorm.io/gorm/clause"
 )
 
 type actorEngine interface {

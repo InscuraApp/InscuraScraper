@@ -2,6 +2,8 @@ package fetch
 
 import (
 	"crypto/tls"
+	"inscurascraper/common/random"
+	"inscurascraper/errors"
 	"io"
 	"net/http"
 	"net/http/cookiejar"
@@ -9,9 +11,6 @@ import (
 
 	"github.com/hashicorp/go-cleanhttp"
 	"github.com/hashicorp/go-retryablehttp"
-
-	"inscurascraper/common/random"
-	"inscurascraper/errors"
 )
 
 var DefaultFetcher = Default(&Config{RandomUserAgent: true})

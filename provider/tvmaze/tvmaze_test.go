@@ -1,10 +1,9 @@
 package tvmaze
 
 import (
+	"inscurascraper/provider/internal/testkit"
 	"os"
 	"testing"
-
-	"inscurascraper/provider/internal/testkit"
 )
 
 // TVMaze public API does not require authentication.

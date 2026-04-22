@@ -1,10 +1,10 @@
 package engine
 
 import (
+	"inscurascraper/common/fetch"
 	"log"
 	"os"
 
-	"inscurascraper/common/fetch"
 	mt "inscurascraper/provider"
 )
 

@@ -1,9 +1,8 @@
 package provider
 
 import (
-	"net/http"
-
 	"inscurascraper/errors"
+	"net/http"
 )
 
 var (

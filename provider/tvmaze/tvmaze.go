@@ -3,6 +3,8 @@ package tvmaze
 import (
 	"encoding/json"
 	"fmt"
+	"inscurascraper/provider"
+	"inscurascraper/provider/internal/scraper"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -13,9 +15,6 @@ import (
 	"github.com/gocolly/colly/v2"
 	"golang.org/x/text/language"
 	"gorm.io/datatypes"
-
-	"inscurascraper/provider"
-	"inscurascraper/provider/internal/scraper"
 )
 
 var (
@@ -34,9 +33,6 @@ const (
 const (
 	baseURL    = "https://www.tvmaze.com/"
 	apiBaseURL = "https://api.tvmaze.com"
-
-	showPageURL  = "https://www.tvmaze.com/shows/%s"
-	personPageURL = "https://www.tvmaze.com/people/%s"
 )
 
 type TVMaze struct {
@@ -125,17 +121,17 @@ type country struct {
 }
 
 type network struct {
-	ID          int      `json:"id"`
-	Name        string   `json:"name"`
-	Country     *country `json:"country"`
-	OfficialSite *string `json:"officialSite"`
+	ID           int      `json:"id"`
+	Name         string   `json:"name"`
+	Country      *country `json:"country"`
+	OfficialSite *string  `json:"officialSite"`
 }
 
 type webChannel struct {
-	ID          int      `json:"id"`
-	Name        string   `json:"name"`
-	Country     *country `json:"country"`
-	OfficialSite *string `json:"officialSite"`
+	ID           int      `json:"id"`
+	Name         string   `json:"name"`
+	Country      *country `json:"country"`
+	OfficialSite *string  `json:"officialSite"`
 }
 
 type rating struct {

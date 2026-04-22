@@ -2,10 +2,9 @@ package envconfig
 
 import (
 	"fmt"
+	"inscurascraper/collection/maps"
 	"os"
 	"strings"
-
-	"inscurascraper/collection/maps"
 )
 
 const (

@@ -1,13 +1,12 @@
 package route
 
 import (
-	"net/http"
-
-	"github.com/gin-gonic/gin"
-
 	"inscurascraper/engine"
 	"inscurascraper/errors"
 	"inscurascraper/model"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 type reviewUri struct {

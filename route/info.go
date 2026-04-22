@@ -1,12 +1,11 @@
 package route
 
 import (
+	"inscurascraper/engine"
+	"inscurascraper/engine/providerid"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-
-	"inscurascraper/engine"
-	"inscurascraper/engine/providerid"
 )
 
 type infoType uint8

@@ -1,10 +1,9 @@
 package tvdb
 
 import (
+	"inscurascraper/provider/internal/testkit"
 	"os"
 	"testing"
-
-	"inscurascraper/provider/internal/testkit"
 )
 
 // Set env IS_TVDB_API_KEY to run tests.

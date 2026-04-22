@@ -2,11 +2,10 @@ package tmdb
 
 import (
 	"fmt"
-	"net/url"
-	"strconv"
-
 	"inscurascraper/model"
 	"inscurascraper/provider"
+	"net/url"
+	"strconv"
 )
 
 // TMDB API response types for persons.
@@ -60,7 +59,6 @@ func (t *TMDB) ParseActorIDFromURL(rawURL string) (string, error) {
 
 // GetActorInfoByID implements provider.ActorProvider.
 func (t *TMDB) GetActorInfoByID(id string) (*model.ActorInfo, error) {
-
 	apiURL := fmt.Sprintf("%s/person/%s?language=%s&append_to_response=images",
 		apiBaseURL, id, t.resolveLanguage())
 
@@ -117,7 +115,6 @@ func (t *TMDB) GetActorInfoByURL(rawURL string) (*model.ActorInfo, error) {
 
 // SearchActor implements provider.ActorSearcher.
 func (t *TMDB) SearchActor(keyword string) ([]*model.ActorSearchResult, error) {
-
 	apiURL := fmt.Sprintf("%s/search/person?language=%s&query=%s",
 		apiBaseURL, t.resolveLanguage(), url.QueryEscape(keyword))
 

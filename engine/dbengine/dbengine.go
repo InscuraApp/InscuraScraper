@@ -2,11 +2,10 @@ package dbengine
 
 import (
 	"fmt"
-
-	"gorm.io/gorm"
-
 	"inscurascraper/database"
 	"inscurascraper/model"
+
+	"gorm.io/gorm"
 )
 
 var _ DBEngine = (*engine)(nil)

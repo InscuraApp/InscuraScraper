@@ -2,7 +2,6 @@ package engine
 
 import (
 	"fmt"
-
 	"inscurascraper/database"
 	"inscurascraper/model"
 )

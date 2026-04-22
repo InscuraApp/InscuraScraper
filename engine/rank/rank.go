@@ -23,13 +23,12 @@
 package rank
 
 import (
+	"inscurascraper/common/comparer"
+	"inscurascraper/model"
 	"sort"
 	"strings"
 	"time"
 	"unicode"
-
-	"inscurascraper/common/comparer"
-	"inscurascraper/model"
 
 	"gorm.io/datatypes"
 )
@@ -147,10 +146,10 @@ func yearTier(wantYear int, got datatypes.Date) float64 {
 	if gotYear == 0 {
 		return 0
 	}
-	switch diff := wantYear - gotYear; {
-	case diff == 0:
+	switch diff := wantYear - gotYear; diff {
+	case 0:
 		return 1.0
-	case diff == 1 || diff == -1:
+	case 1, -1:
 		return 0.5
 	}
 	return 0
@@ -216,7 +215,7 @@ type scriptClass int
 const (
 	scriptAny scriptClass = iota
 	scriptLatin
-	scriptHan     // Chinese Hanzi (covers zh-CN/zh-TW/zh-HK)
+	scriptHan      // Chinese Hanzi (covers zh-CN/zh-TW/zh-HK)
 	scriptJapanese // Hiragana/Katakana (Japanese-specific); Han-only is treated as Chinese
 	scriptHangul
 	scriptArabic

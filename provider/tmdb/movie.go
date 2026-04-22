@@ -2,11 +2,10 @@ package tmdb
 
 import (
 	"fmt"
-	"net/url"
-	"strconv"
-
 	"inscurascraper/model"
 	"inscurascraper/provider"
+	"net/url"
+	"strconv"
 )
 
 // TMDB API response types for movies.
@@ -105,7 +104,6 @@ func (t *TMDB) ParseMovieIDFromURL(rawURL string) (string, error) {
 
 // GetMovieInfoByID implements provider.MovieProvider.
 func (t *TMDB) GetMovieInfoByID(id string) (*model.MovieInfo, error) {
-
 	apiURL := fmt.Sprintf("%s/movie/%s?language=%s&append_to_response=credits,videos",
 		apiBaseURL, id, t.resolveLanguage())
 

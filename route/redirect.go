@@ -1,14 +1,14 @@
 package route
 
 import (
-	"net/http"
-
-	"github.com/gin-gonic/gin"
-
 	"inscurascraper/engine"
 	"inscurascraper/engine/providerid"
 	"inscurascraper/model"
+	"net/http"
+
 	mt "inscurascraper/provider"
+
+	"github.com/gin-gonic/gin"
 )
 
 func redirect(app *engine.Engine) gin.HandlerFunc {

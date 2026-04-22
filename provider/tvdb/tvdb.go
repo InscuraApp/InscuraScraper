@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"inscurascraper/provider"
+	"inscurascraper/provider/internal/scraper"
 	"net/http"
 	"net/url"
 	"path"
@@ -15,9 +17,6 @@ import (
 	"github.com/gocolly/colly/v2"
 	"golang.org/x/text/language"
 	"gorm.io/datatypes"
-
-	"inscurascraper/provider"
-	"inscurascraper/provider/internal/scraper"
 )
 
 var (
@@ -52,11 +51,11 @@ const (
 
 type TVDB struct {
 	*scraper.Scraper
-	apiKey      string
-	token       string
-	tokenExpiry time.Time
+	apiKey       string
+	token        string
+	tokenExpiry  time.Time
 	cachedAPIKey string
-	mu          sync.Mutex
+	mu           sync.Mutex
 }
 
 func New() *TVDB {
@@ -272,11 +271,11 @@ type apiResponse[T any] struct {
 }
 
 type translation struct {
-	Name       string `json:"name"`
-	Overview   string `json:"overview"`
-	Language   string `json:"language"`
-	IsPrimary  bool   `json:"isPrimary"`
-	TagLine    string `json:"tagline"`
+	Name      string `json:"name"`
+	Overview  string `json:"overview"`
+	Language  string `json:"language"`
+	IsPrimary bool   `json:"isPrimary"`
+	TagLine   string `json:"tagline"`
 }
 
 type genre struct {
@@ -286,15 +285,15 @@ type genre struct {
 }
 
 type character struct {
-	ID            int    `json:"id"`
-	Name          string `json:"name"`
-	PeopleID      int    `json:"peopleId"`
-	PersonName    string `json:"personName"`
-	PersonImgURL  string `json:"personImgURL"`
-	Image         string `json:"image"`
-	IsFeatured    bool   `json:"isFeatured"`
-	Type          int    `json:"type"`
-	Sort          int    `json:"sort"`
+	ID           int    `json:"id"`
+	Name         string `json:"name"`
+	PeopleID     int    `json:"peopleId"`
+	PersonName   string `json:"personName"`
+	PersonImgURL string `json:"personImgURL"`
+	Image        string `json:"image"`
+	IsFeatured   bool   `json:"isFeatured"`
+	Type         int    `json:"type"`
+	Sort         int    `json:"sort"`
 }
 
 type artwork struct {

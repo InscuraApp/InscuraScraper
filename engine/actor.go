@@ -3,11 +3,6 @@ package engine
 import (
 	goerr "errors"
 	"fmt"
-	"sort"
-	"sync"
-
-	"gorm.io/gorm/clause"
-
 	"inscurascraper/collection/sets"
 	"inscurascraper/collection/slices"
 	"inscurascraper/common/comparer"
@@ -15,7 +10,12 @@ import (
 	"inscurascraper/engine/providerid"
 	"inscurascraper/engine/rank"
 	"inscurascraper/model"
+	"sort"
+	"sync"
+
 	mt "inscurascraper/provider"
+
+	"gorm.io/gorm/clause"
 )
 
 func (e *Engine) searchActorFromDB(keyword string, provider mt.Provider) (results []*model.ActorSearchResult, err error) {

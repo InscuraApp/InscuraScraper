@@ -2,19 +2,19 @@ package engine
 
 import (
 	"fmt"
-	"strings"
-	"sync"
-	"time"
-
-	"gorm.io/gorm/clause"
-
 	"inscurascraper/collection/sets"
 	"inscurascraper/common/number"
 	"inscurascraper/common/releasename"
 	"inscurascraper/engine/providerid"
 	"inscurascraper/engine/rank"
 	"inscurascraper/model"
+	"strings"
+	"sync"
+	"time"
+
 	mt "inscurascraper/provider"
+
+	"gorm.io/gorm/clause"
 )
 
 // prepareSearchKeyword normalises a user-supplied search keyword. It first

@@ -2,13 +2,13 @@ package engine
 
 import (
 	"fmt"
+	"inscurascraper/engine/providerid"
+	"inscurascraper/model"
+
+	mt "inscurascraper/provider"
 
 	"gorm.io/datatypes"
 	"gorm.io/gorm/clause"
-
-	"inscurascraper/engine/providerid"
-	"inscurascraper/model"
-	mt "inscurascraper/provider"
 )
 
 func (e *Engine) getMovieReviewsFromDB(provider mt.MovieProvider, id string) (*model.MovieReviewInfo, error) {
