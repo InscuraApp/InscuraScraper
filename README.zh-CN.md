@@ -1,12 +1,11 @@
 # InscuraScraper
 
-[English](README.md) | **简体中文** | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md)
+[English](README.md) | **简体中文**
 
 [![Go Version](https://img.shields.io/badge/Go-1.25%2B-00ADD8?logo=go)](https://golang.org/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![CI](https://img.shields.io/badge/CI-GitHub%20Actions-2088FF?logo=github-actions)](.github/workflows/ci.yml)
 [![GHCR](https://img.shields.io/badge/ghcr.io-inscuraapp%2Finscurascraper-2496ED?logo=docker)](https://github.com/orgs/InscuraApp/packages/container/package/inscurascraper)
-[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
 
 **InscuraScraper** 是一个用 Go 编写的元数据抓取 SDK 与 HTTP 服务。它通过可插拔的 Provider 机制从 TMDB、TVDB、TVmaze、AniList、Fanart.tv 等源抓取影片与演员元数据，提供统一的 RESTful API，并使用 SQLite 或 PostgreSQL 作为本地缓存。
 
@@ -589,19 +588,16 @@ make releases          # 输出所有架构的 zip 到 build/
 
 ### 开发新 Provider
 
-详细指南见 [CLAUDE.md](CLAUDE.md) 的 **Provider Development Guide** 与 [CONTRIBUTING.md](CONTRIBUTING.md)。简要步骤：
+详细指南见 [CLAUDE.md](CLAUDE.md) 的 **Provider Development Guide**。简要步骤：
 
 1. 在 `provider/<name>/` 下创建目录，嵌入 `*scraper.Scraper`
 2. 实现 `provider.MovieProvider` 和/或 `ActorProvider`
 3. 在 `init()` 中调用 `provider.Register(Name, New)`
 4. 在 `engine/register.go` 添加 blank import
 
-## 贡献 / 安全 / 许可证
+## 许可证
 
-- [贡献指南](CONTRIBUTING.md)
-- [行为准则](CODE_OF_CONDUCT.md)
-- [安全披露](SECURITY.md)（请勿公开提 Issue）
-- [变更日志](CHANGELOG.md)
+本项目采用 [Apache License 2.0](LICENSE) 许可。
 - 许可证：[Apache 2.0](LICENSE)
 
 ## 致谢

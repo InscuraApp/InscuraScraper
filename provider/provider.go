@@ -17,7 +17,7 @@
 //   - [ProxySetter]     — optional; applies an HTTP/SOCKS5 proxy.
 //   - [RequestTimeoutSetter] — optional; adjusts request timeout.
 //
-// See CONTRIBUTING.md and CLAUDE.md for the full provider-development guide.
+// See CLAUDE.md for the full provider-development guide.
 package provider
 
 import (

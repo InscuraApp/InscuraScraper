@@ -1,12 +1,11 @@
 # InscuraScraper
 
-**English** | [简体中文](README.zh-CN.md) | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [한국어](README.ko.md)
+**English** | [简体中文](README.zh-CN.md)
 
 [![Go Version](https://img.shields.io/badge/Go-1.25%2B-00ADD8?logo=go)](https://golang.org/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![CI](https://img.shields.io/badge/CI-GitHub%20Actions-2088FF?logo=github-actions)](.github/workflows/ci.yml)
 [![GHCR](https://img.shields.io/badge/ghcr.io-inscuraapp%2Finscurascraper-2496ED?logo=docker)](https://github.com/orgs/InscuraApp/packages/container/package/inscurascraper)
-[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
 
 **InscuraScraper** is a metadata-scraping SDK and HTTP service written in Go. It pulls movie and actor metadata from sources such as TMDB, TVDB, TVmaze, AniList, and Fanart.tv through a pluggable provider architecture, exposes a unified RESTful API, and uses SQLite or PostgreSQL for local caching.
 
@@ -589,19 +588,16 @@ make releases          # Emit zips for all architectures under build/
 
 ### Developing a New Provider
 
-See the **Provider Development Guide** in [CLAUDE.md](CLAUDE.md) and [CONTRIBUTING.md](CONTRIBUTING.md) for the full walkthrough. In brief:
+See the **Provider Development Guide** in [CLAUDE.md](CLAUDE.md) for the full walkthrough. In brief:
 
 1. Create `provider/<name>/` and embed `*scraper.Scraper`
 2. Implement `provider.MovieProvider` and/or `ActorProvider`
 3. Call `provider.Register(Name, New)` in `init()`
 4. Add a blank import in `engine/register.go`
 
-## Contributing / Security / License
+## License
 
-- [Contributing guide](CONTRIBUTING.md)
-- [Code of Conduct](CODE_OF_CONDUCT.md)
-- [Security policy](SECURITY.md) (do not file public issues)
-- [Changelog](CHANGELOG.md)
+Licensed under the [Apache License 2.0](LICENSE).
 - License: [Apache 2.0](LICENSE)
 
 ## Acknowledgements
