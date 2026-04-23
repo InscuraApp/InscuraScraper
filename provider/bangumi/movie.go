@@ -2,11 +2,10 @@ package bangumi
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
-
 	"inscurascraper/model"
 	"inscurascraper/provider"
+	"strconv"
+	"strings"
 )
 
 var (

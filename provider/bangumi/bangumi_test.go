@@ -1,12 +1,11 @@
 package bangumi_test
 
 import (
+	"inscurascraper/provider/bangumi"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	"inscurascraper/provider/bangumi"
 )
 
 func TestBangumi_GetMovieInfoByID(t *testing.T) {

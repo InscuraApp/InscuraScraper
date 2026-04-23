@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"inscurascraper/provider"
+	"inscurascraper/provider/internal/scraper"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -13,9 +15,6 @@ import (
 	"github.com/gocolly/colly/v2"
 	"golang.org/x/text/language"
 	"gorm.io/datatypes"
-
-	"inscurascraper/provider"
-	"inscurascraper/provider/internal/scraper"
 )
 
 const (
@@ -86,7 +85,7 @@ func (b *Bangumi) apiGet(apiURL string, dest any) error {
 }
 
 // apiPost performs a POST request with a JSON body and unmarshals the response into dest.
-func (b *Bangumi) apiPost(apiURL string, reqBody any, dest any) error {
+func (b *Bangumi) apiPost(apiURL string, reqBody, dest any) error {
 	bodyBytes, err := json.Marshal(reqBody)
 	if err != nil {
 		return fmt.Errorf("bangumi: marshal request body: %w", err)

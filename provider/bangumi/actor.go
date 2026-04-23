@@ -2,14 +2,13 @@ package bangumi
 
 import (
 	"fmt"
+	"inscurascraper/model"
+	"inscurascraper/provider"
 	"strconv"
 	"strings"
 	"time"
 
 	"gorm.io/datatypes"
-
-	"inscurascraper/model"
-	"inscurascraper/provider"
 )
 
 var (
