@@ -7,7 +7,7 @@
 [![CI](https://img.shields.io/badge/CI-GitHub%20Actions-2088FF?logo=github-actions)](.github/workflows/ci.yml)
 [![GHCR](https://img.shields.io/badge/ghcr.io-inscuraapp%2Finscurascraper-2496ED?logo=docker)](https://github.com/orgs/InscuraApp/packages/container/package/inscurascraper)
 
-**InscuraScraper** 是一个用 Go 编写的元数据抓取 SDK 与 HTTP 服务。它通过可插拔的 Provider 机制从 TMDB、TVDB、TVmaze、AniList、Fanart.tv 等源抓取影片与演员元数据，提供统一的 RESTful API，并使用 SQLite 或 PostgreSQL 作为本地缓存。
+**InscuraScraper** 是一个用 Go 编写的元数据抓取 SDK 与 HTTP 服务。它通过可插拔的 Provider 机制从 TMDB、TVDB、TVmaze、AniList、Fanart.tv、Trakt 等源抓取影片与演员元数据，提供统一的 RESTful API，并使用 SQLite 或 PostgreSQL 作为本地缓存。
 
 > Forked and refactored with the original author's permission.
 
@@ -20,11 +20,12 @@
   - [Docker Compose 方式](#docker-compose-方式)
 - [配置](#配置)
   - [服务器参数](#服务器参数)
-  - [Provider 配置（环境变量）](#provider-配置环境变量)
+  - [Provider 环境变量](#provider-环境变量)
+  - [每请求覆盖请求头](#每请求覆盖请求头)
 - [API 参考](#api-参考)
   - [鉴权](#鉴权)
   - [通用响应格式](#通用响应格式)
-  - [可选请求头](#可选请求头)
+  - [Query 参数参考](#query-参数参考)
   - [端点一览](#端点一览)
   - [端点详情](#端点详情)
 - [数据模型](#数据模型)
@@ -33,11 +34,11 @@
 
 ## 特性
 
-- 🔌 **可插拔 Provider 架构**：已内置 TMDB、TVDB、TVmaze、AniList、Fanart.tv，开发新源只需实现接口并注册
+- 🔌 **可插拔 Provider 架构**：已内置 TMDB、TVDB、TVmaze、AniList、Fanart.tv、Trakt，开发新源只需实现接口并注册
 - 🚀 **RESTful API**：Gin 驱动，统一的搜索 / 信息 / 评论 / 代理查询端点
 - 🗄️ **双数据库支持**：默认内存 SQLite（零配置），生产可切到 PostgreSQL
 - ⚡ **本地缓存**：先查缓存再回源，降低上游配额消耗
-- 🌐 **每请求定制**：通过请求头动态切换代理、API Key、语言,无需重启
+- 🌐 **每请求定制**：通过请求头动态切换代理、API Key、语言，无需重启
 - 💊 **可观测性**：内置 `/healthz`、`/readyz` 健康检查端点
 - 🐳 **多平台**：Linux / macOS / Windows / BSD，已提供 Dockerfile 与 Docker Compose
 
@@ -140,7 +141,7 @@ docker compose logs -f inscurascraper
 IS_PROVIDER_TMDB__API_TOKEN=xxxxx
 IS_PROVIDER_FANARTTV__API_KEY=xxxxx
 IS_PROVIDER_TVDB__API_KEY=xxxxx
-IS_PROVIDER_TVMAZE__API_KEY=xxxxx
+IS_PROVIDER_TRAKT__CLIENT_ID=xxxxx
 ```
 
 > **注意**：`docker-compose.yaml` 将 PostgreSQL 数据卷挂载到项目目录的 `./db`，该目录已通过 `.gitignore` 排除，请勿将其加入版本控制。
@@ -177,36 +178,103 @@ DSN 示例：
 -dsn "postgres://user:pass@/inscurascraper?host=/var/run/postgresql"
 ```
 
-### Provider 配置（环境变量）
+### Provider 环境变量
 
-每个 Provider 的 API Key、代理、优先级等通过带前缀的环境变量注入：
+每个 Provider 的 API Key、代理、优先级等在启动时通过带前缀的环境变量注入，属于**全局配置**。如需单请求级别的覆盖，请使用[每请求覆盖请求头](#每请求覆盖请求头)。
 
-```sh
-# 同时作用于 actor 和 movie provider
-IS_PROVIDER_{NAME}__{KEY}=value
+#### 变量命名规则
 
-# 仅作用于 actor provider
-IS_ACTOR_PROVIDER_{NAME}__{KEY}=value
-
-# 仅作用于 movie provider
-IS_MOVIE_PROVIDER_{NAME}__{KEY}=value
+```
+IS_PROVIDER_{NAME}__{KEY}=value          # 同时作用于 actor 和 movie 子 provider
+IS_ACTOR_PROVIDER_{NAME}__{KEY}=value    # 仅作用于 actor 子 provider
+IS_MOVIE_PROVIDER_{NAME}__{KEY}=value    # 仅作用于 movie 子 provider
 ```
 
-常用 `{KEY}`：
+`{NAME}` 为 Provider 名称的**大写形式**（如 `TMDB`、`TVDB`、`TRAKT`）。  
+`{KEY}` 为下表中的键名。
 
-| Key | 说明 |
-|-----|------|
-| `API_TOKEN` / `API_KEY` | 上游 API 凭证 |
-| `PRIORITY` | 匹配优先级（数值越大越优先） |
-| `PROXY` | HTTP/SOCKS5 代理 URL |
-| `TIMEOUT` | 请求超时（Go duration，如 `30s`） |
+#### 通用键（适用于任意 Provider）
 
-示例：
+| Key | 类型 | 说明 |
+|-----|------|------|
+| `PRIORITY` | float | 匹配优先级，数值越大越优先，多源结果合并时决定排序 |
+| `PROXY` | string | HTTP 或 SOCKS5 代理 URL，如 `http://127.0.0.1:7890` 或 `socks5://127.0.0.1:1080` |
+| `TIMEOUT` | duration | 单次上游请求超时，Go duration 格式，如 `30s`、`2m` |
+
+#### 内置 Provider 凭证键
+
+| Provider | 环境变量 | 是否必填 | 获取地址 |
+|----------|---------|---------|---------|
+| **TMDB** | `IS_PROVIDER_TMDB__API_TOKEN` | 是 | [themoviedb.org/settings/api](https://www.themoviedb.org/settings/api) — 使用 **Bearer Token（v4 鉴权）** |
+| **TVDB** | `IS_PROVIDER_TVDB__API_KEY` | 是 | [thetvdb.com/api-information](https://thetvdb.com/api-information) |
+| **Fanart.tv** | `IS_PROVIDER_FANARTTV__API_KEY` | 是 | [fanart.tv/get-an-api-key](https://fanart.tv/get-an-api-key/) |
+| **Trakt** | `IS_PROVIDER_TRAKT__CLIENT_ID` | 是 | [trakt.tv/oauth/applications](https://trakt.tv/oauth/applications) — 注册应用后复制 **Client ID** |
+| **AniList** | *(无)* | — | 公开 API，无需 Key |
+| **TVmaze** | *(无)* | — | 公开 API，无需 Key |
+| **Bangumi** | *(无)* | — | 公开 API，无需 Key |
+
+#### 完整示例
 
 ```sh
-export IS_PROVIDER_TMDB__API_TOKEN=eyJhbGciOi...
-export IS_PROVIDER_TMDB__PRIORITY=10
+# 凭证
+export IS_PROVIDER_TMDB__API_TOKEN=eyJhbGciOiJSUzI1NiJ9...
+export IS_PROVIDER_TVDB__API_KEY=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+export IS_PROVIDER_FANARTTV__API_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+export IS_PROVIDER_TRAKT__CLIENT_ID=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+# 优先级调整（数值越大越优先）
+export IS_PROVIDER_TMDB__PRIORITY=1000
+export IS_PROVIDER_TRAKT__PRIORITY=900
+
+# 按 Provider 配置代理（覆盖全局代理）
 export IS_PROVIDER_TMDB__PROXY=http://127.0.0.1:7890
+export IS_PROVIDER_TVDB__PROXY=socks5://127.0.0.1:1080
+
+# 按 Provider 配置超时
+export IS_PROVIDER_TMDB__TIMEOUT=30s
+export IS_PROVIDER_TRAKT__TIMEOUT=20s
+
+# 仅针对 TMDB 的 movie 子 provider 调整优先级
+export IS_MOVIE_PROVIDER_TMDB__PRIORITY=1100
+```
+
+### 每请求覆盖请求头
+
+通过以下请求头，可以在**单次请求**中覆盖代理、API Key 或响应语言，无需重启服务。适用于多租户场景或临时切换 Key。
+
+| Header | 说明 |
+|--------|------|
+| `X-Is-Proxy` | 本次请求所有 Provider 使用的代理 URL（覆盖全局 env 代理） |
+| `X-Is-Api-Key-{PROVIDER}` | 覆盖指定 Provider 的 API Key（大小写不敏感；Provider 名称与 `/v1/providers` 返回的一致） |
+| `X-Is-Language` | 响应语言，BCP 47 标签，如 `zh-CN`、`en-US`、`ja-JP` |
+
+> **优先级**：请求头 > 全局 `IS_PROVIDER_*` 环境变量。
+
+#### 示例
+
+```sh
+# 本次请求使用不同的 TMDB Token
+curl -H "Authorization: Bearer $TOKEN" \
+     -H "X-Is-Api-Key-TMDB: eyJhbGciOi..." \
+     "http://localhost:8080/v1/movies/search?q=Inception"
+
+# 本次请求全部上游通过指定代理访问
+curl -H "Authorization: Bearer $TOKEN" \
+     -H "X-Is-Proxy: socks5://127.0.0.1:1080" \
+     "http://localhost:8080/v1/movies/TMDB/27205"
+
+# 请求中文元数据
+curl -H "Authorization: Bearer $TOKEN" \
+     -H "X-Is-Language: zh-CN" \
+     "http://localhost:8080/v1/movies/search?q=盗梦空间"
+
+# 组合使用：代理 + 语言 + 多个 Provider Key
+curl -H "Authorization: Bearer $TOKEN" \
+     -H "X-Is-Proxy: http://127.0.0.1:7890" \
+     -H "X-Is-Language: ja-JP" \
+     -H "X-Is-Api-Key-TMDB: eyJhbGciOi..." \
+     -H "X-Is-Api-Key-Trakt: your-trakt-client-id" \
+     "http://localhost:8080/v1/movies/search?q=Inception"
 ```
 
 ## API 参考
@@ -299,23 +367,73 @@ HTTP/1.1 401 Unauthorized
 - 成功：只返回 `data`
 - 失败：只返回 `error`，HTTP 状态码与 `error.code` 对齐
 
-### 可选请求头
+### Query 参数参考
 
-每次请求可覆盖 Provider 行为，无需重启：
+所有端点所支持的 Query 参数汇总。
 
-| Header | 说明 |
-|--------|------|
-| `X-Is-Proxy` | 本次请求所有 Provider 使用的代理 URL |
-| `X-Is-Api-Key-{PROVIDER}` | 覆盖指定 Provider 的 API Key（大小写不敏感） |
-| `X-Is-Language` | 响应语言，BCP 47 标签，如 `zh-CN`、`en-US` |
+#### 搜索端点（`/v1/movies/search`、`/v1/actors/search`）
 
-示例：
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `q` | string | **必填** | 搜索关键词。若传入 `http(s)://` 格式的 URL，则自动解析 Provider 和 ID，直接返回详情而非搜索结果 |
+| `provider` | string | *(全部)* | 限定到单个 Provider（大小写不敏感，如 `TMDB`、`Trakt`）。不传则聚合并去重所有已注册 Provider 的结果 |
+| `fallback` | bool | `true` | 上游无结果时是否回退到本地 DB 缓存 |
+
+```sh
+# 跨全部 Provider 的关键词搜索
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:8080/v1/movies/search?q=Inception"
+
+# 只从 TMDB 搜索
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:8080/v1/movies/search?q=Inception&provider=TMDB"
+
+# 不回退缓存（仅上游）
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:8080/v1/movies/search?q=Inception&fallback=false"
+
+# 传入完整 URL，触发详情获取而非文本搜索
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:8080/v1/movies/search?q=https://www.themoviedb.org/movie/27205"
+```
+
+#### 详情端点（`/v1/movies/:provider/:id`、`/v1/actors/:provider/:id`）
+
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `lazy` | bool | `true` | `true` = 优先读本地缓存，无缓存才回源；`false` = 强制回源拉取最新数据并更新缓存 |
+
+```sh
+# 读缓存（默认）
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:8080/v1/movies/TMDB/27205"
+
+# 强制回源刷新
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:8080/v1/movies/TMDB/27205?lazy=false"
+
+# Trakt 使用 slug 作为 ID
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:8080/v1/movies/Trakt/inception"
+
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:8080/v1/actors/Trakt/leonardo-dicaprio"
+```
+
+#### 评论端点（`/v1/reviews/:provider/:id`）
+
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| `homepage` | string | *(无)* | 直接按此 URL 抓取评论，而不使用路径中的 `id` |
+| `lazy` | bool | `true` | 与详情端点相同的缓存语义 |
 
 ```sh
 curl -H "Authorization: Bearer $TOKEN" \
-     -H "X-Is-Language: zh-CN" \
-     -H "X-Is-Api-Key-TMDB: eyJhbGciOi..." \
-     "http://localhost:8080/v1/movies/search?q=Inception"
+  "http://localhost:8080/v1/reviews/TMDB/27205"
+
+# 强制刷新
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:8080/v1/reviews/TMDB/27205?lazy=false"
 ```
 
 ### 端点一览
@@ -374,12 +492,14 @@ curl -s http://localhost:8080/v1/providers | jq
 {
   "data": {
     "actor_providers": {
-      "TMDB": "https://www.themoviedb.org",
-      "TVDB": "https://thetvdb.com"
+      "TMDB":  "https://www.themoviedb.org",
+      "TVDB":  "https://thetvdb.com",
+      "Trakt": "https://trakt.tv"
     },
     "movie_providers": {
       "TMDB":   "https://www.themoviedb.org",
-      "TVmaze": "https://www.tvmaze.com"
+      "TVmaze": "https://www.tvmaze.com",
+      "Trakt":  "https://trakt.tv"
     }
   }
 }
@@ -387,13 +507,7 @@ curl -s http://localhost:8080/v1/providers | jq
 
 #### `GET /v1/movies/search`
 
-查询参数：
-
-| 参数 | 必选 | 说明 |
-|------|------|------|
-| `q` | ✅ | 关键词；若传入 http(s) URL，则自动解析 Provider 和 ID 直接取详情 |
-| `provider` | ❌ | 限定 Provider（忽略大小写）；不传则聚合全部 Provider |
-| `fallback` | ❌ | 上游无结果时是否回退到本地 DB 缓存，默认 `true` |
+详细参数说明见 [Query 参数参考 — 搜索端点](#搜索端点v1moviessearchv1actorssearch)。
 
 ```sh
 curl -s -H "Authorization: Bearer $TOKEN" \
@@ -421,11 +535,7 @@ curl -s -H "Authorization: Bearer $TOKEN" \
 
 #### `GET /v1/movies/:provider/:id`
 
-查询参数：
-
-| 参数 | 说明 |
-|------|------|
-| `lazy` | `true`（默认）= 优先读缓存；`false` = 强制回源刷新 |
+详细参数说明见 [Query 参数参考 — 详情端点](#详情端点v1moviesprovideridv1actorsproviderid)。
 
 ```sh
 curl -s -H "Authorization: Bearer $TOKEN" \
@@ -487,12 +597,7 @@ curl -s -H "Authorization: Bearer $TOKEN" \
 
 #### `GET /v1/reviews/:provider/:id`
 
-查询参数：
-
-| 参数 | 说明 |
-|------|------|
-| `homepage` | 可选；直接按 URL 抓取评论 |
-| `lazy` | 同上 |
+详细参数说明见 [Query 参数参考 — 评论端点](#评论端点v1reviewsproviderid)。
 
 ```sh
 curl -s -H "Authorization: Bearer $TOKEN" \

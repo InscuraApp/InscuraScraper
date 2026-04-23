@@ -22,7 +22,6 @@ var (
 	_ provider.MovieSearcher = (*TVMaze)(nil)
 	_ provider.ActorProvider = (*TVMaze)(nil)
 	_ provider.ActorSearcher = (*TVMaze)(nil)
-	_ provider.ConfigSetter  = (*TVMaze)(nil)
 )
 
 const (
@@ -37,7 +36,6 @@ const (
 
 type TVMaze struct {
 	*scraper.Scraper
-	apiKey string
 }
 
 func New() *TVMaze {
@@ -46,13 +44,6 @@ func New() *TVMaze {
 			Name, baseURL, Priority, language.English,
 		),
 	}
-}
-
-func (t *TVMaze) SetConfig(config provider.Config) error {
-	if apiKey, err := config.GetString("api_key"); err == nil {
-		t.apiKey = apiKey
-	}
-	return nil
 }
 
 // apiGet performs a GET request to the TVMaze API.

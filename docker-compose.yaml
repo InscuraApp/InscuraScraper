@@ -13,7 +13,6 @@ services:
       - IS_PROVIDER_TMDB__API_TOKEN=
       - IS_PROVIDER_FANARTTV__API_KEY=
       - IS_PROVIDER_TVDB__API_KEY=
-      - IS_PROVIDER_TVMAZE__API_KEY=
     volumes:
       - run:/var/run
     command: -dsn "postgres://inscurascraper:inscurascraper@/inscurascraper?host=/var/run/postgresql" -port 8080 -db-auto-migrate -db-prepared-stmt
