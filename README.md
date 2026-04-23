@@ -13,63 +13,34 @@
 
 ## Table of Contents
 
-- [Features](#features)
-- [Quick Start](#quick-start)
-  - [Binary](#binary)
+- [Running](#running)
   - [Docker](#docker)
   - [Docker Compose](#docker-compose)
+  - [Binary](#binary)
 - [Configuration](#configuration)
   - [Server Options](#server-options)
-  - [Provider Environment Variables](#provider-environment-variables)
+  - [Provider Variables](#provider-variables)
   - [Per-Request Override Headers](#per-request-override-headers)
+  - [Query Parameters](#query-parameters)
+- [Supported Languages](#supported-languages)
 - [API Reference](#api-reference)
   - [Authentication](#authentication)
-  - [Common Response Shape](#common-response-shape)
-  - [Query Parameters Reference](#query-parameters-reference)
+  - [Response Format](#response-format)
   - [Endpoint Overview](#endpoint-overview)
   - [Endpoint Details](#endpoint-details)
+  - [Error Responses](#error-responses)
+- [Integrations](#integrations)
 - [Data Models](#data-models)
 - [Development](#development)
-- [Contributing / Security / License](#contributing--security--license)
+- [License & Acknowledgements](#license--acknowledgements)
 
-## Features
+---
 
-- 🔌 **Pluggable provider architecture** — TMDB, TVDB, TVmaze, AniList, Fanart.tv, and Trakt built in; new sources only need to implement the interface and register
-- 🚀 **RESTful API** — Gin-driven, unified endpoints for search / info / reviews / proxy configuration
-- 🗄️ **Dual database support** — in-memory SQLite by default (zero config); switch to PostgreSQL for production
-- ⚡ **Local cache** — serve from cache first, fall back to upstream to conserve quota
-- 🌐 **Per-request overrides** — swap proxy, API key, or language via request headers without restart
-- 💊 **Observability** — built-in `/healthz` and `/readyz` probes
-- 🐳 **Cross-platform** — Linux / macOS / Windows / BSD, Dockerfile and Docker Compose included
-
-## Quick Start
-
-> 💡 **Ready to go**: the Docker image is published on GHCR — run `docker pull ghcr.io/inscuraapp/inscurascraper:latest` to get started. See [Docker](#docker).
-
-### Binary
-
-Prerequisites: Go 1.25+, `make`.
-
-```sh
-git clone https://github.com/InscuraApp/InscuraScraper.git
-cd InscuraScraper
-make                                  # output: build/inscurascraper-server
-
-./build/inscurascraper-server         # listens on :8080 with in-memory SQLite
-```
-
-Verify:
-
-```sh
-curl -s http://localhost:8080/healthz
-# {"status":"ok"}
-
-curl -s http://localhost:8080/v1/providers | jq
-```
+## Running
 
 ### Docker
 
-Images are published to **GitHub Container Registry**: `ghcr.io/inscuraapp/inscurascraper`.
+Images are published to **GitHub Container Registry**: `ghcr.io/inscuraapp/inscurascraper`
 
 **Available tags:**
 
@@ -81,22 +52,18 @@ Images are published to **GitHub Container Registry**: `ghcr.io/inscuraapp/inscu
 
 **Supported architectures:** `linux/amd64`, `linux/arm64`
 
-#### Pull and run
+**Quickest start — in-memory SQLite, no auth:**
 
 ```sh
-# Latest version, in-memory SQLite, no auth
 docker run --rm -p 8080:8080 \
   -e IS_PROVIDER_TMDB__API_TOKEN=<your-tmdb-token> \
   ghcr.io/inscuraapp/inscurascraper:latest
 ```
 
-#### With persistent SQLite file
-
-Mount the database file onto the host to survive container rebuilds:
+**With persistent SQLite (survives container rebuilds):**
 
 ```sh
 mkdir -p ./data
-
 docker run -d --name inscurascraper -p 8080:8080 \
   -v $PWD/data:/data \
   -e TOKEN=change-me \
@@ -105,56 +72,71 @@ docker run -d --name inscurascraper -p 8080:8080 \
   -dsn "/data/inscurascraper.db" -db-auto-migrate
 ```
 
-#### Build locally (optional)
-
-If you prefer to build from source instead of pulling the prebuilt image:
+**Build locally (optional):**
 
 ```sh
 docker build -t inscurascraper:local .
 docker run --rm -p 8080:8080 inscurascraper:local
 ```
 
-### Docker Compose
-
-The repo ships `docker-compose.yaml` to bring up InscuraScraper + PostgreSQL in one command.
-
-> **Note**: the current `docker-compose.yaml` defaults to the local image `inscurascraper-server:latest`. To use the GHCR image directly, change `image:` to `ghcr.io/inscuraapp/inscurascraper:latest` — no `docker build` required.
+**Verify:**
 
 ```sh
-# Option 1: use the GHCR image (recommended)
-#   edit docker-compose.yaml: change image: inscurascraper-server:latest
-#   to image: ghcr.io/inscuraapp/inscurascraper:latest
+curl -s http://localhost:8080/healthz   # {"status":"ok"}
+curl -s http://localhost:8080/v1/providers | jq
+```
 
-# Option 2: build locally (requires source)
+### Docker Compose
+
+The repo ships `docker-compose.yaml` that starts InscuraScraper + PostgreSQL with a single command.
+
+> **Note**: `docker-compose.yaml` defaults to the local image `inscurascraper-server:latest`. To use the GHCR image directly, change `image:` to `ghcr.io/inscuraapp/inscurascraper:latest`.
+
+```sh
+# Option A: use GHCR image (recommended — no build step)
+#   Edit docker-compose.yaml: set image to ghcr.io/inscuraapp/inscurascraper:latest
+
+# Option B: build locally
 docker build -t inscurascraper-server:latest .
 
-# Start
 docker compose up -d
-
-# Tail logs
 docker compose logs -f inscurascraper
 ```
 
-The first run auto-creates tables (`-db-auto-migrate`). Inject your API tokens via the `environment` block in `docker-compose.yaml`, or via a `.env` file:
+Inject API tokens via environment or a `.env` file at the repo root:
 
 ```env
+TOKEN=change-me
 IS_PROVIDER_TMDB__API_TOKEN=xxxxx
 IS_PROVIDER_FANARTTV__API_KEY=xxxxx
 IS_PROVIDER_TVDB__API_KEY=xxxxx
 IS_PROVIDER_TRAKT__CLIENT_ID=xxxxx
 ```
 
-> **Note**: `docker-compose.yaml` mounts the PostgreSQL data volume at `./db` inside the project; that directory is already in `.gitignore` — do not commit it.
+> **Note**: PostgreSQL data is mounted to `./db` — already in `.gitignore`. Do not commit it.
+
+### Binary
+
+Prerequisites: Go 1.25+, `make`.
+
+```sh
+git clone https://github.com/InscuraApp/InscuraScraper.git
+cd InscuraScraper
+make                              # output: build/inscurascraper-server
+./build/inscurascraper-server     # listens on :8080, in-memory SQLite
+```
+
+---
 
 ## Configuration
 
 ### Server Options
 
-All options can be set via **command-line flags** or **uppercase environment variables of the same name** (parsed by `peterbourgon/ff`).
+All options can be set via **command-line flags** or **uppercase environment variables of the same name** (parsed by `peterbourgon/ff`). Flags take precedence.
 
 | Flag | Env Var | Default | Description |
 |------|---------|---------|-------------|
-| `-bind` | `BIND` | `""` | Bind address (empty = listen on all interfaces) |
+| `-bind` | `BIND` | `""` | Bind address (empty = all interfaces) |
 | `-port` | `PORT` | `8080` | HTTP port |
 | `-token` | `TOKEN` | `""` | API auth token; empty disables authentication |
 | `-dsn` | `DSN` | `""` | Database DSN; empty = in-memory SQLite |
@@ -163,102 +145,83 @@ All options can be set via **command-line flags** or **uppercase environment var
 | `-db-prepared-stmt` | `DB_PREPARED_STMT` | `false` | Enable prepared statements |
 | `-db-max-idle-conns` | `DB_MAX_IDLE_CONNS` | `0` | Max idle DB connections |
 | `-db-max-open-conns` | `DB_MAX_OPEN_CONNS` | `0` | Max open DB connections |
-| `-version` | `VERSION` | - | Print version and exit |
+| `-version` | — | — | Print version and exit |
 
-DSN examples:
+**DSN examples:**
 
 ```sh
-# SQLite file
--dsn "/data/inscurascraper.db"
-
-# PostgreSQL TCP
--dsn "postgres://user:pass@host:5432/inscurascraper?sslmode=disable"
-
-# PostgreSQL Unix socket (see docker-compose.yaml)
--dsn "postgres://user:pass@/inscurascraper?host=/var/run/postgresql"
+-dsn "/data/inscurascraper.db"                                         # SQLite file
+-dsn "postgres://user:pass@host:5432/inscurascraper?sslmode=disable"  # PostgreSQL TCP
+-dsn "postgres://user:pass@/inscurascraper?host=/var/run/postgresql"   # PostgreSQL Unix socket
 ```
 
-### Provider Environment Variables
+### Provider Variables
 
-Per-provider settings are injected via prefixed environment variables at startup. **These apply globally** — use [Per-Request Override Headers](#per-request-override-headers) for request-scoped overrides.
+Per-provider API keys, proxies, and priorities are injected at startup via prefixed environment variables. These are **global settings** — see [Per-Request Override Headers](#per-request-override-headers) for per-call overrides.
 
-#### Variable naming pattern
+**Naming pattern:**
 
 ```
-IS_PROVIDER_{NAME}__{KEY}=value          # applies to both actor and movie sub-providers
-IS_ACTOR_PROVIDER_{NAME}__{KEY}=value    # actor sub-provider only
-IS_MOVIE_PROVIDER_{NAME}__{KEY}=value    # movie sub-provider only
+IS_PROVIDER_{NAME}__{KEY}=value           # applies to both actor and movie sub-providers
+IS_ACTOR_PROVIDER_{NAME}__{KEY}=value     # actor sub-provider only
+IS_MOVIE_PROVIDER_{NAME}__{KEY}=value     # movie sub-provider only
 ```
 
-`{NAME}` is the provider name in **UPPERCASE** (e.g. `TMDB`, `TVDB`, `TRAKT`).  
-`{KEY}` is one of the keys listed in the tables below.
+`{NAME}` is the provider name in **UPPERCASE** (e.g. `TMDB`, `TVDB`, `TRAKT`).
 
-#### Common keys (applicable to any provider)
+**Common keys (any provider):**
 
 | Key | Type | Description |
 |-----|------|-------------|
-| `PRIORITY` | float | Match priority — higher value wins when multiple providers return results |
-| `PROXY` | string | HTTP or SOCKS5 proxy URL, e.g. `http://127.0.0.1:7890` or `socks5://127.0.0.1:1080` |
+| `PRIORITY` | float | Match priority — higher wins when multiple providers return results |
+| `PROXY` | string | HTTP or SOCKS5 proxy, e.g. `http://127.0.0.1:7890` or `socks5://127.0.0.1:1080` |
 | `TIMEOUT` | duration | Per-request timeout in Go duration format, e.g. `30s`, `2m` |
 
-#### Built-in provider credential keys
+**Provider credential keys:**
 
-| Provider | Env Var | Required | Where to obtain |
-|----------|---------|----------|-----------------|
+| Provider | Env Var | Required | Where to get |
+|----------|---------|----------|--------------|
 | **TMDB** | `IS_PROVIDER_TMDB__API_TOKEN` | Yes | [themoviedb.org/settings/api](https://www.themoviedb.org/settings/api) — use the **Bearer Token (v4 auth)** |
 | **TVDB** | `IS_PROVIDER_TVDB__API_KEY` | Yes | [thetvdb.com/api-information](https://thetvdb.com/api-information) |
 | **Fanart.tv** | `IS_PROVIDER_FANARTTV__API_KEY` | Yes | [fanart.tv/get-an-api-key](https://fanart.tv/get-an-api-key/) |
-| **Trakt** | `IS_PROVIDER_TRAKT__CLIENT_ID` | Yes | [trakt.tv/oauth/applications](https://trakt.tv/oauth/applications) — register a new app, copy the **Client ID** |
+| **Trakt** | `IS_PROVIDER_TRAKT__CLIENT_ID` | Yes | [trakt.tv/oauth/applications](https://trakt.tv/oauth/applications) — register an app, copy **Client ID** |
 | **AniList** | *(none)* | — | Public API, no key required |
 | **TVmaze** | *(none)* | — | Public API, no key required |
 | **Bangumi** | *(none)* | — | Public API, no key required |
 
-#### Full example
+**Full example:**
 
 ```sh
-# Credentials
 export IS_PROVIDER_TMDB__API_TOKEN=eyJhbGciOiJSUzI1NiJ9...
 export IS_PROVIDER_TVDB__API_KEY=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 export IS_PROVIDER_FANARTTV__API_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 export IS_PROVIDER_TRAKT__CLIENT_ID=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
-# Priority tuning (higher = preferred when results tie)
 export IS_PROVIDER_TMDB__PRIORITY=1000
-export IS_PROVIDER_TRAKT__PRIORITY=900
-
-# Proxy per provider (overrides global proxy)
 export IS_PROVIDER_TMDB__PROXY=http://127.0.0.1:7890
-export IS_PROVIDER_TVDB__PROXY=socks5://127.0.0.1:1080
-
-# Timeout per provider
 export IS_PROVIDER_TMDB__TIMEOUT=30s
-export IS_PROVIDER_TRAKT__TIMEOUT=20s
-
-# Target only the movie sub-provider of TMDB
-export IS_MOVIE_PROVIDER_TMDB__PRIORITY=1100
+export IS_MOVIE_PROVIDER_TMDB__PRIORITY=1100   # movie sub-provider only
 ```
 
 ### Per-Request Override Headers
 
-These headers let you override proxy, API key, or language **for a single request** without restarting the server. Useful for multi-tenant setups or testing a different key.
+Override proxy, API key, or language **for a single request** without restarting. Useful for multi-tenant setups.
 
 | Header | Description |
 |--------|-------------|
-| `X-Is-Proxy` | Proxy URL applied to all providers for this request (overrides global env proxy) |
-| `X-Is-Api-Key-{PROVIDER}` | Override the API key / token for the named provider (case-insensitive); provider name matches what `/v1/providers` returns |
-| `X-Is-Language` | Response language as a BCP 47 tag — e.g. `zh-CN`, `en-US`, `ja-JP` |
+| `X-Is-Proxy` | Proxy URL for all providers on this request (overrides global env proxy) |
+| `X-Is-Api-Key-{PROVIDER}` | Override the API key for a named provider (case-insensitive) |
+| `X-Is-Language` | Response language as a BCP 47 tag — e.g. `zh-CN`, `en`, `ja` |
 
 > **Precedence**: per-request header > global `IS_PROVIDER_*` env var.
 
-#### Examples
-
 ```sh
-# Use a different TMDB token for this request only
+# Different TMDB token for this request only
 curl -H "Authorization: Bearer $TOKEN" \
      -H "X-Is-Api-Key-TMDB: eyJhbGciOi..." \
      "http://localhost:8080/v1/movies/search?q=Inception"
 
-# Route all upstream calls through a proxy for this request
+# Route through a proxy for this request
 curl -H "Authorization: Bearer $TOKEN" \
      -H "X-Is-Proxy: socks5://127.0.0.1:1080" \
      "http://localhost:8080/v1/movies/TMDB/27205"
@@ -266,248 +229,139 @@ curl -H "Authorization: Bearer $TOKEN" \
 # Request Chinese metadata
 curl -H "Authorization: Bearer $TOKEN" \
      -H "X-Is-Language: zh-CN" \
-     "http://localhost:8080/v1/movies/search?q=盗梦空间"
-
-# Combine: proxy + language + per-provider key
-curl -H "Authorization: Bearer $TOKEN" \
-     -H "X-Is-Proxy: http://127.0.0.1:7890" \
-     -H "X-Is-Language: ja-JP" \
-     -H "X-Is-Api-Key-TMDB: eyJhbGciOi..." \
-     -H "X-Is-Api-Key-Trakt: your-trakt-client-id" \
      "http://localhost:8080/v1/movies/search?q=Inception"
 ```
+
+### Query Parameters
+
+#### Search endpoints — `/v1/movies/search`, `/v1/actors/search`
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `q` | string | **required** | Search keyword. Pass an `http(s)://` URL to trigger a direct detail fetch instead of a keyword search |
+| `provider` | string | *(all)* | Restrict to a single provider (case-insensitive). Omit to aggregate all registered providers |
+| `fallback` | bool | `true` | Fall back to the local DB cache when the upstream returns no results |
+
+```sh
+curl -H "Authorization: Bearer $TOKEN" "http://localhost:8080/v1/movies/search?q=Inception"
+curl -H "Authorization: Bearer $TOKEN" "http://localhost:8080/v1/movies/search?q=Inception&provider=TMDB"
+curl -H "Authorization: Bearer $TOKEN" "http://localhost:8080/v1/movies/search?q=https://www.themoviedb.org/movie/27205"
+```
+
+#### Detail endpoints — `/v1/movies/:provider/:id`, `/v1/actors/:provider/:id`
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `lazy` | bool | `true` | `true` = prefer local cache; `false` = always fetch fresh from upstream and update cache |
+
+```sh
+curl -H "Authorization: Bearer $TOKEN" "http://localhost:8080/v1/movies/TMDB/27205"
+curl -H "Authorization: Bearer $TOKEN" "http://localhost:8080/v1/movies/TMDB/27205?lazy=false"
+curl -H "Authorization: Bearer $TOKEN" "http://localhost:8080/v1/movies/Trakt/inception"
+```
+
+#### Review endpoint — `/v1/reviews/:provider/:id`
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `homepage` | string | *(none)* | Scrape reviews from this URL instead of using the stored `id` |
+| `lazy` | bool | `true` | Same cache semantics as detail endpoints |
+
+```sh
+curl -H "Authorization: Bearer $TOKEN" "http://localhost:8080/v1/reviews/TMDB/27205"
+curl -H "Authorization: Bearer $TOKEN" "http://localhost:8080/v1/reviews/TMDB/27205?lazy=false"
+```
+
+---
+
+## Supported Languages
+
+Pass a [BCP 47](https://www.rfc-editor.org/rfc/rfc5646) language tag via the `X-Is-Language` request header. The engine forwards it to each provider using that provider's native format.
+
+| BCP 47 Tag | Language | TMDB | TVDB | AniList | Bangumi | Fanart.tv | TVmaze | Trakt |
+|------------|----------|:----:|:----:|:-------:|:-------:|:---------:|:------:|:-----:|
+| `zh` / `zh-CN` | Simplified Chinese | ✅ | ✅ | — | ✅ | ✅ | — | — |
+| `zh-TW` | Traditional Chinese | ✅ | ✅ | — | ✅ | ✅ | — | — |
+| `en` | English | ✅ | ✅ | ✅ | — | ✅ | ✅ | ✅ |
+| `ja` | Japanese | ✅ | ✅ | ✅ | — | ✅ | — | — |
+| `ko` | Korean | ✅ | ✅ | — | — | — | — | — |
+| `fr` | French | ✅ | ✅ | — | — | — | — | — |
+| `de` | German | ✅ | ✅ | — | — | — | — | — |
+| `es` | Spanish | ✅ | ✅ | — | — | — | — | — |
+
+**Notes:**
+- ✅ = provider responds to the language tag; — = provider returns its default language regardless.
+- TVmaze and Trakt are English-only APIs.
+- Bangumi's content is primarily Chinese and Japanese.
+- TMDB accepts any BCP 47 tag supported by its API.
+- Both `zh` and `zh-CN` resolve to Simplified Chinese via BCP 47 matching.
+
+---
 
 ## API Reference
 
 ### Authentication
 
-InscuraScraper protects **private endpoints** (paths marked ✅ in the [Endpoint Overview](#endpoint-overview)) with a simple **Bearer Token** scheme. Public endpoints (`/`, `/healthz`, `/readyz`, `/v1/modules`, `/v1/providers`, `/?redirect=...`) are unaffected.
+Private endpoints (marked ✅ in [Endpoint Overview](#endpoint-overview)) require a **Bearer Token**. Public endpoints (`/`, `/healthz`, `/readyz`, `/v1/modules`, `/v1/providers`, `/?redirect=...`) are unaffected.
 
-#### Enable authentication
-
-Configure the token via a **command-line flag** or an **environment variable** (flag takes precedence):
+**Configure the token:**
 
 ```sh
-# Option A: command-line flag
 ./build/inscurascraper-server -token "my-secret-token"
-
-# Option B: environment variable
+# or
 export TOKEN="my-secret-token"
-./build/inscurascraper-server
 ```
 
-**When the token is empty (`-token ""`), authentication is fully disabled** and every endpoint becomes public — fine for local development or internal networks, but you must set it explicitly in production.
+When `TOKEN` is empty, authentication is disabled — fine for local development, but set it in production.
 
-Docker:
+> Use a random string: `openssl rand -hex 32`
 
-```sh
-docker run -d -p 8080:8080 \
-  -e TOKEN=my-secret-token \
-  -e IS_PROVIDER_TMDB__API_TOKEN=<your-tmdb-token> \
-  ghcr.io/inscuraapp/inscurascraper:latest
-```
-
-Docker Compose — add to the `environment` block in `docker-compose.yaml`:
-
-```yaml
-services:
-  inscurascraper:
-    environment:
-      TOKEN: my-secret-token
-```
-
-Or load via a `.env` file at the repo root:
-
-```env
-TOKEN=my-secret-token
-```
-
-> 💡 Use a sufficiently long random string (e.g. `openssl rand -hex 32`) and inject it via a secret manager. Do not commit it to the repo or bake it into images.
-
-#### Calling private endpoints
-
-Attach the token as a request header. **The format must be exactly `Bearer <token>`** (case-sensitive):
+**Call a private endpoint:**
 
 ```sh
 curl -H "Authorization: Bearer my-secret-token" \
   "http://localhost:8080/v1/movies/search?q=Inception"
 ```
 
-Validation failures always return:
-
-```
-HTTP/1.1 401 Unauthorized
-```
+Authentication failures return `HTTP 401`:
 
 ```json
 { "error": { "code": 401, "message": "unauthorized" } }
 ```
 
-Common causes:
+### Response Format
 
-- Missing `Authorization` header
-- Prefix is not `Bearer` (case-sensitive — `bearer`, `Token`, etc. are rejected)
-- Token value does not match the server-side configuration
-
-#### Rotating or revoking tokens
-
-The current implementation is a **single static token**. Rotating requires restarting the process to pick up the new value; for multi-token management or dynamic revocation, extend `route/auth.TokenStore` in code.
-
-### Common Response Shape
-
-Every endpoint returns:
+Every endpoint returns the same envelope:
 
 ```json
-{
-  "data": { },
-  "error": { "code": 400, "message": "..." }
-}
+{ "data": { } }           // success
+{ "error": { "code": 400, "message": "..." } }  // failure
 ```
 
-- Success: only `data` is populated
-- Failure: only `error` is populated; the HTTP status code matches `error.code`
-
-### Query Parameters Reference
-
-A consolidated reference for every query parameter accepted across all endpoints.
-
-#### Search endpoints (`/v1/movies/search`, `/v1/actors/search`)
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `q` | string | **required** | Keyword to search. If an `http(s)://` URL is supplied, the provider and ID are parsed automatically and a detail fetch is performed instead of a search |
-| `provider` | string | *(all)* | Restrict results to a single provider (case-insensitive, e.g. `TMDB`, `Trakt`). Omit to aggregate and deduplicate across all registered providers |
-| `fallback` | bool | `true` | When the upstream provider returns no results, fall back to the local DB cache |
-
-```sh
-# Keyword search across all providers
-curl -H "Authorization: Bearer $TOKEN" \
-  "http://localhost:8080/v1/movies/search?q=Inception"
-
-# Restrict to one provider
-curl -H "Authorization: Bearer $TOKEN" \
-  "http://localhost:8080/v1/movies/search?q=Inception&provider=TMDB"
-
-# Disable cache fallback (upstream only)
-curl -H "Authorization: Bearer $TOKEN" \
-  "http://localhost:8080/v1/movies/search?q=Inception&fallback=false"
-
-# Pass a full URL — detail fetch is performed, not a text search
-curl -H "Authorization: Bearer $TOKEN" \
-  "http://localhost:8080/v1/movies/search?q=https://www.themoviedb.org/movie/27205"
-```
-
-#### Detail endpoints (`/v1/movies/:provider/:id`, `/v1/actors/:provider/:id`)
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `lazy` | bool | `true` | `true` = prefer the local DB cache, fetch upstream only if absent. `false` = always fetch fresh data from the upstream provider and update the cache |
-
-```sh
-# Serve from cache (default)
-curl -H "Authorization: Bearer $TOKEN" \
-  "http://localhost:8080/v1/movies/TMDB/27205"
-
-# Force a fresh upstream fetch
-curl -H "Authorization: Bearer $TOKEN" \
-  "http://localhost:8080/v1/movies/TMDB/27205?lazy=false"
-
-# Trakt uses slug IDs
-curl -H "Authorization: Bearer $TOKEN" \
-  "http://localhost:8080/v1/movies/Trakt/inception"
-
-curl -H "Authorization: Bearer $TOKEN" \
-  "http://localhost:8080/v1/actors/Trakt/leonardo-dicaprio"
-```
-
-#### Review endpoint (`/v1/reviews/:provider/:id`)
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `homepage` | string | *(none)* | Scrape reviews directly from this URL instead of using the stored `id` |
-| `lazy` | bool | `true` | Same cache semantics as detail endpoints |
-
-```sh
-curl -H "Authorization: Bearer $TOKEN" \
-  "http://localhost:8080/v1/reviews/TMDB/27205"
-
-# Force refresh
-curl -H "Authorization: Bearer $TOKEN" \
-  "http://localhost:8080/v1/reviews/TMDB/27205?lazy=false"
-```
+HTTP status matches `error.code` on failure.
 
 ### Endpoint Overview
 
 | Method | Path | Auth | Description |
-|--------|------|------|-------------|
-| GET | `/` | ❌ | Service info |
-| GET | `/healthz` | ❌ | Liveness probe |
-| GET | `/readyz` | ❌ | Readiness probe (checks database) |
-| GET | `/v1/modules` | ❌ | Build dependency list |
-| GET | `/v1/providers` | ❌ | Registered providers |
+|--------|------|:----:|-------------|
+| GET | `/` | — | Service info |
+| GET | `/healthz` | — | Liveness probe |
+| GET | `/readyz` | — | Readiness probe (checks DB) |
+| GET | `/v1/modules` | — | Build dependency list |
+| GET | `/v1/providers` | — | Registered providers |
 | GET | `/v1/db/version` | ✅ | Database version |
-| GET | `/v1/config/proxy` | ✅ | Current provider proxy config |
+| GET | `/v1/config/proxy` | ✅ | Provider proxy config |
 | GET | `/v1/movies/search` | ✅ | Search movies |
 | GET | `/v1/movies/:provider/:id` | ✅ | Movie details |
 | GET | `/v1/actors/search` | ✅ | Search actors |
 | GET | `/v1/actors/:provider/:id` | ✅ | Actor details |
 | GET | `/v1/reviews/:provider/:id` | ✅ | Movie reviews |
-| GET | `/?redirect=:provider:id` | ❌ | Redirect to the upstream page for a given provider/ID |
+| GET | `/?redirect=:provider:id` | — | Redirect to upstream page |
 
 ### Endpoint Details
 
-#### `GET /`
-
-```sh
-curl -s http://localhost:8080/
-```
-
-```json
-{
-  "data": {
-    "app": "inscurascraper",
-    "version": "v0.0.1 (abc1234)"
-  }
-}
-```
-
-#### `GET /healthz` / `GET /readyz`
-
-```sh
-curl -s http://localhost:8080/healthz
-# {"status":"ok"}
-
-curl -s http://localhost:8080/readyz
-# {"status":"ready"}
-# If the database is unreachable: HTTP 503 {"status":"not_ready","error":"..."}
-```
-
-#### `GET /v1/providers`
-
-```sh
-curl -s http://localhost:8080/v1/providers | jq
-```
-
-```json
-{
-  "data": {
-    "actor_providers": {
-      "TMDB":  "https://www.themoviedb.org",
-      "TVDB":  "https://thetvdb.com",
-      "Trakt": "https://trakt.tv"
-    },
-    "movie_providers": {
-      "TMDB":    "https://www.themoviedb.org",
-      "TVmaze":  "https://www.tvmaze.com",
-      "Trakt":   "https://trakt.tv"
-    }
-  }
-}
-```
-
-#### `GET /v1/movies/search`
-
-See [Query Parameters Reference — Search endpoints](#search-endpoints-v1moviessearch-v1actorssearch) for full parameter docs.
+<details>
+<summary><strong>GET /v1/movies/search</strong></summary>
 
 ```sh
 curl -s -H "Authorization: Bearer $TOKEN" \
@@ -518,24 +372,19 @@ curl -s -H "Authorization: Bearer $TOKEN" \
 {
   "data": [
     {
-      "id": "27205",
-      "number": "tt1375666",
-      "title": "Inception",
-      "provider": "TMDB",
-      "homepage": "https://www.themoviedb.org/movie/27205",
+      "id": "27205", "number": "tt1375666", "title": "Inception",
+      "provider": "TMDB", "homepage": "https://www.themoviedb.org/movie/27205",
       "thumb_url": "https://image.tmdb.org/t/p/w300/...jpg",
       "cover_url": "https://image.tmdb.org/t/p/original/...jpg",
-      "score": 8.4,
-      "actors": ["Leonardo DiCaprio", "Joseph Gordon-Levitt"],
-      "release_date": "2010-07-15"
+      "score": 8.4, "actors": ["Leonardo DiCaprio"], "release_date": "2010-07-15"
     }
   ]
 }
 ```
+</details>
 
-#### `GET /v1/movies/:provider/:id`
-
-See [Query Parameters Reference — Detail endpoints](#detail-endpoints-v1moviesproviderid-v1actorsproviderid) for full parameter docs.
+<details>
+<summary><strong>GET /v1/movies/:provider/:id</strong></summary>
 
 ```sh
 curl -s -H "Authorization: Bearer $TOKEN" \
@@ -545,116 +394,79 @@ curl -s -H "Authorization: Bearer $TOKEN" \
 ```json
 {
   "data": {
-    "id": "27205",
-    "number": "tt1375666",
-    "title": "Inception",
-    "summary": "Cobb, a skilled thief who commits corporate espionage...",
-    "provider": "TMDB",
-    "homepage": "https://www.themoviedb.org/movie/27205",
+    "id": "27205", "number": "tt1375666", "title": "Inception",
+    "summary": "Cobb, a skilled thief...",
+    "provider": "TMDB", "homepage": "https://www.themoviedb.org/movie/27205",
     "director": "Christopher Nolan",
     "actors": ["Leonardo DiCaprio", "Joseph Gordon-Levitt", "Elliot Page"],
-    "thumb_url": "https://image.tmdb.org/t/p/w300/...jpg",
-    "big_thumb_url": "https://image.tmdb.org/t/p/w780/...jpg",
-    "cover_url": "https://image.tmdb.org/t/p/original/...jpg",
-    "big_cover_url": "https://image.tmdb.org/t/p/original/...jpg",
-    "preview_video_url": "",
-    "preview_video_hls_url": "",
-    "preview_images": [],
-    "maker": "Legendary Pictures",
-    "label": "",
-    "series": "",
     "genres": ["Action", "Science Fiction", "Adventure"],
-    "score": 8.4,
-    "runtime": 148,
-    "release_date": "2010-07-15"
+    "score": 8.4, "runtime": 148, "release_date": "2010-07-15"
   }
 }
 ```
+</details>
 
-#### `GET /v1/actors/search` / `GET /v1/actors/:provider/:id`
-
-Parameters mirror the movie endpoints. Sample actor payload:
+<details>
+<summary><strong>GET /v1/actors/:provider/:id</strong></summary>
 
 ```json
 {
   "data": {
-    "id": "6193",
-    "name": "Leonardo DiCaprio",
-    "provider": "TMDB",
-    "homepage": "https://www.themoviedb.org/person/6193",
+    "id": "6193", "name": "Leonardo DiCaprio",
+    "provider": "TMDB", "homepage": "https://www.themoviedb.org/person/6193",
     "summary": "Leonardo Wilhelm DiCaprio is an American actor...",
-    "aliases": ["Leo"],
-    "images": [
-      "https://image.tmdb.org/t/p/original/...jpg"
-    ],
-    "nationality": "US",
-    "height": 183,
-    "birthday": "1974-11-11",
-    "debut_date": "1991-01-01"
+    "aliases": ["Leo"], "images": ["https://image.tmdb.org/t/p/original/...jpg"],
+    "nationality": "US", "height": 183,
+    "birthday": "1974-11-11", "debut_date": "1991-01-01"
   }
 }
 ```
+</details>
 
-#### `GET /v1/reviews/:provider/:id`
+<details>
+<summary><strong>GET /v1/reviews/:provider/:id</strong></summary>
 
-See [Query Parameters Reference — Review endpoint](#review-endpoint-v1reviewsproviderid) for full parameter docs.
-
-```sh
-curl -s -H "Authorization: Bearer $TOKEN" \
-  "http://localhost:8080/v1/reviews/TMDB/27205" | jq
-```
+> Only providers implementing the `MovieReviewer` interface support this endpoint; others return 400.
 
 ```json
 {
   "data": [
-    {
-      "title": "A modern classic",
-      "author": "cinemaphile",
-      "comment": "Nolan at his peak...",
-      "score": 9.0,
-      "date": "2020-06-01"
-    }
+    { "title": "A modern classic", "author": "cinemaphile",
+      "comment": "Nolan at his peak...", "score": 9.0, "date": "2020-06-01" }
   ]
 }
 ```
+</details>
 
-> Only providers implementing the `MovieReviewer` interface support this endpoint; others return 400.
-
-#### `GET /v1/db/version`
-
-```json
-{ "data": { "version": "PostgreSQL 15.6 on x86_64-pc-linux-musl ..." } }
-```
-
-#### `GET /v1/config/proxy`
-
-Returns each provider's persisted proxy setting (injected via environment variables; read-only at runtime).
+<details>
+<summary><strong>GET /v1/providers</strong></summary>
 
 ```json
 {
   "data": {
-    "TMDB":   "http://127.0.0.1:7890",
-    "TVDB":   ""
+    "actor_providers": { "TMDB": "https://www.themoviedb.org", "TVDB": "https://thetvdb.com", "Trakt": "https://trakt.tv" },
+    "movie_providers": { "TMDB": "https://www.themoviedb.org", "TVmaze": "https://www.tvmaze.com", "Trakt": "https://trakt.tv" }
   }
 }
 ```
+</details>
 
-#### `GET /?redirect=TMDB:27205`
+<details>
+<summary><strong>GET /healthz &amp; /readyz</strong></summary>
 
-Issues a `302` redirect to the upstream homepage for the given movie/actor.
+```sh
+curl -s http://localhost:8080/healthz   # {"status":"ok"}
+curl -s http://localhost:8080/readyz    # {"status":"ready"} or HTTP 503 if DB unreachable
+```
+</details>
+
+<details>
+<summary><strong>GET /?redirect=TMDB:27205</strong></summary>
+
+Issues a `302` redirect to the upstream homepage for the given provider/ID pair.
+</details>
 
 ### Error Responses
-
-```json
-{
-  "error": {
-    "code": 404,
-    "message": "info not found"
-  }
-}
-```
-
-Common status codes:
 
 | HTTP | Meaning |
 |------|---------|
@@ -664,34 +476,70 @@ Common status codes:
 | 500 | Upstream scrape failure / database error |
 | 503 | `/readyz`: database unreachable |
 
+---
+
+## Integrations
+
+InscuraScraper exposes a standard HTTP/JSON API. Any tool that can make HTTP requests can use it as a metadata backend.
+
+### tinyMediaManager
+
+tinyMediaManager supports custom URL scrapers. Point your scraper URL to InscuraScraper and pass `Authorization: Bearer <token>` as a custom header. Use `X-Is-Language` to receive metadata in your preferred language.
+
+Example: search endpoint for movies: `http://<host>:8080/v1/movies/search?q={query}`
+
+### Jellyfin / Emby
+
+Use a custom metadata plugin that queries InscuraScraper's REST API. The `/v1/movies/:provider/:id` and `/v1/actors/:provider/:id` endpoints return the metadata fields these platforms require.
+
+### Generic HTTP client
+
+```sh
+export SCRAPER=http://localhost:8080
+export TOKEN=my-secret-token
+
+# Search with language override
+curl -sH "Authorization: Bearer $TOKEN" \
+     -H "X-Is-Language: zh-CN" \
+     "$SCRAPER/v1/movies/search?q=Inception" | jq '.data[0]'
+
+# Fetch details by provider URL
+curl -sH "Authorization: Bearer $TOKEN" \
+     "$SCRAPER/v1/movies/search?q=https://www.themoviedb.org/movie/27205" | jq
+```
+
+---
+
 ## Data Models
 
-See [`model/movie.go`](model/movie.go) and [`model/actor.go`](model/actor.go) for the full field definitions. Summary:
+See [`model/movie.go`](model/movie.go) and [`model/actor.go`](model/actor.go) for full field definitions.
 
-- `MovieInfo`: `id, number, title, summary, provider, homepage, director, actors[], thumb_url, big_thumb_url, cover_url, big_cover_url, preview_video_url, preview_video_hls_url, preview_images[], maker, label, series, genres[], score, runtime, release_date`
-- `MovieSearchResult`: a lightweight subset of `MovieInfo`
-- `ActorInfo`: `id, name, provider, homepage, summary, aliases[], images[], birthday, blood_type, cup_size, measurements, height, nationality, debut_date`
-- `MovieReviewDetail`: `title, author, comment, score, date`
+- **`MovieInfo`**: `id, number, title, summary, provider, homepage, director, actors[], thumb_url, big_thumb_url, cover_url, big_cover_url, preview_video_url, preview_video_hls_url, preview_images[], maker, label, series, genres[], score, runtime, release_date`
+- **`MovieSearchResult`**: lightweight subset of `MovieInfo`
+- **`ActorInfo`**: `id, name, provider, homepage, summary, aliases[], images[], birthday, blood_type, cup_size, measurements, height, nationality, debut_date`
+- **`MovieReviewDetail`**: `title, author, comment, score, date`
+
+---
 
 ## Development
 
 ### Build / Test / Lint
 
 ```sh
-make              # Dev build
+make              # Dev build → build/inscurascraper-server
 make server       # Production build
 make lint         # golangci-lint
 go test ./...     # Full test suite
 ```
 
-Cross-compile:
+**Cross-compile:**
 
 ```sh
 make darwin-arm64 linux-amd64 windows-amd64
-make releases          # Emit zips for all architectures under build/
+make releases     # Emit zips for all architectures under build/
 ```
 
-### Developing a New Provider
+### Adding a Provider
 
 See the **Provider Development Guide** in [CLAUDE.md](CLAUDE.md) for the full walkthrough. In brief:
 
@@ -700,12 +548,11 @@ See the **Provider Development Guide** in [CLAUDE.md](CLAUDE.md) for the full wa
 3. Call `provider.Register(Name, New)` in `init()`
 4. Add a blank import in `engine/register.go`
 
-## License
+---
+
+## License & Acknowledgements
 
 Licensed under the [Apache License 2.0](LICENSE).
-- License: [Apache 2.0](LICENSE)
-
-## Acknowledgements
 
 | Library | Description |
 |---------|-------------|
